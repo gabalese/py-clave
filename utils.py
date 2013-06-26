@@ -8,18 +8,18 @@ except:
 	print("ERROR: lxml library must be installed.")
 	sys.exit(1)
 
-namespaces = {"opf":"http://www.idpf.org/2007/opf","dc":"http://purl.org/dc/elements/1.1/"}
+namespaces = {"opf":"http://www.idpf.org/2007/opf", "dc":"http://purl.org/dc/elements/1.1/"}
 
 class Metadata:
 	def __init__(self, file):
 		opf = self.parseOPF(file)
 		
-		self.title = opf.xpath("//dc:title",namespaces=namespaces)[0].text
-		self.author = opf.xpath("//dc:creator",namespaces=namespaces)[0].text
-		self.isbn = opf.xpath("//dc:identifier",namespaces=namespaces)[0].text
-		self.language = opf.xpath("//dc:language",namespaces=namespaces)[0].text
-		self.publisher = opf.xpath("//dc:publisher",namespaces=namespaces)[0].text
-		self.pubdate = opf.xpath("//dc:date[@opf:event='publication']",namespaces=namespaces)[0]
+		self.title = opf.xpath("//dc:title", namespaces=namespaces)[0].text
+		self.author = opf.xpath("//dc:creator", namespaces=namespaces)[0].text
+		self.isbn = opf.xpath("//dc:identifier", namespaces=namespaces)[0].text
+		self.language = opf.xpath("//dc:language", namespaces=namespaces)[0].text
+		self.publisher = opf.xpath("//dc:publisher", namespaces=namespaces)[0].text
+		self.pubdate = opf.xpath("//dc:date[@opf:event='publication']", namespaces=namespaces)[0]
 		
 	def parseInfo(self, file):
 		info = {}
@@ -35,7 +35,7 @@ class Metadata:
 			pass
 		opf = ET.fromstring(ZIP.ZipFile(file).read(info["path_to_opf"]))
 	
-		id = opf.xpath("//opf:spine",namespaces=namespaces)[0].get("toc")
+		id = opf.xpath("//opf:spine", namespaces=namespaces)[0].get("toc")
 		expr = "//*[@id='%s']" % id
 		info["ncx_name"] = opf.xpath(expr)[0].get("href")
 		info["path_to_ncx"] = root_folder + "/" + info["ncx_name"]

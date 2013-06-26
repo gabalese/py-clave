@@ -7,7 +7,7 @@ class ErrorHandler(tornado.web.RequestHandler):
         self.set_status(status_code)
     
     def write_error(self, status, **kwargs):
-       self.write("Nope.")
+        self.write("Nope.")
     
     def prepare(self):
         raise tornado.web.HTTPError(self._status_code)
@@ -20,7 +20,7 @@ class GetInfo(tornado.web.RequestHandler):
             except IOError:
                 raise tornado.web.HTTPError(404)
             response = m.author
-            response += ", "+m.title
+            response += ", " + m.title
             self.write(response)
         else:
             self.write("Nothing to do")

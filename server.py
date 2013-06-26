@@ -3,8 +3,6 @@ import sys
 from TestHandlers import Echo, MainHandler
 from MainHandlers import GetInfo, ErrorHandler
 
-from utils import Metadata
-
 application = tornado.web.Application([
     (r"/", MainHandler),
     (r"/echo", Echo),
