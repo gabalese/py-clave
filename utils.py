@@ -1,6 +1,7 @@
 import zipfile as ZIP
 import sys
 import os
+
 try:
 	from lxml import etree as ET
 except:
