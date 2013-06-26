@@ -6,4 +6,4 @@ class MainHandler(tornado.web.RequestHandler):
     
 class Echo(tornado.web.RequestHandler):
     def get(self):
-        self.write("I hear you, ",self.request.remote_ip)
+        self.write("I hear you, "+self.request.remote_ip)
