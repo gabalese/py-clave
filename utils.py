@@ -19,7 +19,7 @@ class Metadata:
 		self.isbn = opf.xpath("//dc:identifier", namespaces=namespaces)[0].text
 		self.language = opf.xpath("//dc:language", namespaces=namespaces)[0].text
 		self.publisher = opf.xpath("//dc:publisher", namespaces=namespaces)[0].text
-		self.pubdate = opf.xpath("//dc:date[@opf:event='publication']", namespaces=namespaces)[0]
+		self.pubdate = opf.xpath("//dc:date[@opf:event='publication']", namespaces=namespaces)[0].text
 		
 	def parseInfo(self, file):
 		info = {}
