@@ -1,11 +1,12 @@
 import tornado.ioloop
 import sys
-from TestHandlers import Echo, MainHandler
+from TestHandlers import Echo, MainHandler, PingHandler
 from MainHandlers import GetInfo, ErrorHandler
 
 application = tornado.web.Application([
     (r"/", MainHandler),
     (r"/echo", Echo),
+    (r"/ping",PingHandler),
     (r"/info/(.*)", GetInfo)
 ])
 
