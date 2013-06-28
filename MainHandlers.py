@@ -1,6 +1,5 @@
 import tornado.web
 from utils import Metadata
-import json
 
 class ErrorHandler(tornado.web.RequestHandler):
     def __init__(self, application, request, status_code):
@@ -18,9 +17,8 @@ class GetInfo(tornado.web.RequestHandler):
         if filename:
             try:
                 m = Metadata(filename)
-            except IOError:
+            except IOError as e:
                 raise tornado.web.HTTPError(404)
-            response = json.JSONEncoder().encode(m.__dict__)
-            self.write(response)
+            self.write(m.__dict__)
         else:
             self.write("Nothing to do")

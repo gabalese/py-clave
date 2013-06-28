@@ -1,5 +1,4 @@
 import tornado.web
-import json
 import time
 
 
@@ -16,4 +15,4 @@ class Echo(tornado.web.RequestHandler):
 class PingHandler(tornado.web.RequestHandler):
     def get(self):
         response = {"status": "200OK", "timestamp": time.time()}
-        self.write(json.JSONEncoder().encode(response))
+        self.write(response)

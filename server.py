@@ -9,7 +9,7 @@ application = tornado.web.Application([
     (r"/ping", PingHandler),
     (r"/info/(.*)", GetInfo),
     (r'/public/(.*)', tornado.web.StaticFileHandler, {'path': "./public"})
-])
+], debug=False)
 
 tornado.web.ErrorHandler = ErrorHandler
 
