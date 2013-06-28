@@ -1,13 +1,15 @@
 import tornado.ioloop
 import sys
 from TestHandlers import Echo, MainHandler, PingHandler
-from MainHandlers import GetInfo, ErrorHandler
+from MainHandlers import GetInfo, ErrorHandler, ListFiles, ShowFileToc
 
 application = tornado.web.Application([
     (r"/", MainHandler),
     (r"/echo", Echo),
     (r"/ping", PingHandler),
     (r"/info/(.*)", GetInfo),
+    (r"/list", ListFiles),
+    (r"/toc/(.*)", ShowFileToc),
     (r'/public/(.*)', tornado.web.StaticFileHandler, {'path': "./public"})
 ], debug=False)
 

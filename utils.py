@@ -1,32 +1,42 @@
 import zipfile as ZIP
 import sys
 import os
+import glob
 
 try:
     from lxml import etree as ET
 except ImportError:
     print("ERROR: lxml library must be installed.")
+    # TODO: fallback for xml.Etree
     sys.exit(1)
 
 namespaces = {"opf": "http://www.idpf.org/2007/opf", "dc": "http://purl.org/dc/elements/1.1/"}
 
+def listEpubFiles(ext):
+    meta = []
+    for i in glob.glob("*.%s" % ext):
+        meta.append(EPUB(i).__dict__)
+        # ouch. there must be a more elegant way
+    return meta
 
-class Metadata:
+
+class EPUB:
     def __init__(self, file):
         opf = self.parseOPF(file)
-
+        # this list must grow...
         self.title = opf.xpath("//dc:title", namespaces=namespaces)[0].text
         self.author = opf.xpath("//dc:creator", namespaces=namespaces)[0].text
         self.isbn = opf.xpath("//dc:identifier", namespaces=namespaces)[0].text
         self.language = opf.xpath("//dc:language", namespaces=namespaces)[0].text
         self.publisher = opf.xpath("//dc:publisher", namespaces=namespaces)[0].text
         self.pubdate = opf.xpath("//dc:date[@opf:event='publication']", namespaces=namespaces)[0].text
+        self.file = file
 
     def parseInfo(self, file):
         """
-
-        :param file:
-        :return:
+        Find where OPF and NCX files are in the epub archive
+        :param file: file path
+        :return: dict{"path_to_opf":path,"path_to_ncx":path}
         """
         info = {}
         try:
@@ -52,9 +62,9 @@ class Metadata:
 
     def parseOPF(self, file):
         """
-
-        :param file:
-        :return:
+        Parse a OPF content file
+        :param file: file path
+        :return: opf Element
         """
         opf = ET.fromstring(ZIP.ZipFile(file).read(self.parseInfo(file)["path_to_opf"]))
 
@@ -63,10 +73,14 @@ class Metadata:
     def parseNCX(self, file):
 
         """
-
-        :param file:
-        :return:
+        Parse a NCX index
+        :param file: file path
+        :return: ncx Element
         """
         ncx = ET.fromstring(ZIP.ZipFile(file).read(self.parseInfo(file)["path_to_ncx"]))
 
         return ncx
+
+    def showToc(self):
+        opf = ET.fromstring(ZIP.ZipFile(self.file).read(self.parseInfo(self.file)["path_to_opf"]))
+        return opf[2]
