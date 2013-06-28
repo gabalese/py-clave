@@ -23,15 +23,15 @@ def listEpubFiles(ext):
 
 class EPUB:
     def __init__(self, file):
+        self.file = file
         opf = self.parseOPF(file)
         # this list must grow...
-        self.title = opf.xpath("//dc:title", namespaces=namespaces)[0].text
-        self.author = opf.xpath("//dc:creator", namespaces=namespaces)[0].text
-        self.isbn = opf.xpath("//dc:identifier", namespaces=namespaces)[0].text
-        self.language = opf.xpath("//dc:language", namespaces=namespaces)[0].text
-        self.publisher = opf.xpath("//dc:publisher", namespaces=namespaces)[0].text
-        self.pubdate = opf.xpath("//dc:date[@opf:event='publication']", namespaces=namespaces)[0].text
-        self.file = file
+        self.title = opf.xpath("//dc:title/text()", namespaces=namespaces) or None
+        self.author = opf.xpath("//dc:creator/text()", namespaces=namespaces) or None
+        self.isbn = opf.xpath("//dc:identifier/text()", namespaces=namespaces) or None
+        self.language = opf.xpath("//dc:language/text()", namespaces=namespaces) or None
+        self.publisher = opf.xpath("//dc:publisher/text()", namespaces=namespaces) or None
+        self.pubdate = opf.xpath("//dc:date[@opf:event='publication']/text()", namespaces=namespaces) or None
 
     def parseInfo(self, file):
         """
