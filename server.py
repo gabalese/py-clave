@@ -18,7 +18,7 @@ tornado.web.ErrorHandler = ErrorHandler
 if __name__ == "__main__":
     try:
         port = sys.argv[1]
-    except IndexError as e:
+    except IndexError:
         port = 8080
     application.listen(port)
     tornado.ioloop.IOLoop.instance().start()
