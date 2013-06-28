@@ -5,7 +5,7 @@ import time
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.write("Hello, world")
+        self.render("./public/index.html")
 
 
 class Echo(tornado.web.RequestHandler):

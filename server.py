@@ -7,7 +7,8 @@ application = tornado.web.Application([
     (r"/", MainHandler),
     (r"/echo", Echo),
     (r"/ping", PingHandler),
-    (r"/info/(.*)", GetInfo)
+    (r"/info/(.*)", GetInfo),
+    (r'/public/(.*)', tornado.web.StaticFileHandler, {'path': "./public"})
 ])
 
 tornado.web.ErrorHandler = ErrorHandler
