@@ -21,11 +21,11 @@ class GetInfo(tornado.web.RequestHandler):
         if filename:
             try:
                 m = EPUB(filename)
-            except IOError as e:
+            except IOError:
                 raise tornado.web.HTTPError(404)
             self.write(m.__dict__)
         else:
-            self.write("Nothing to do")
+            raise tornado.web.HTTPError(400)
 
 
 class ListFiles(tornado.web.RequestHandler):
@@ -39,11 +39,7 @@ class ListFiles(tornado.web.RequestHandler):
 class ShowFileToc(tornado.web.RequestHandler):
     def get(self, filename):
         toc = EPUB(filename).showToc()
-        list = []
-        for i in toc:
-            list.append(i.get("idref"))
-            # TODO: show the client a dictionary {"idref":"item>href"}
-
-        self.write(str(list))
+        self.set_header("Content-Type","application/json")
+        self.write(json.JSONEncoder().encode(toc))
 
 

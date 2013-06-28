@@ -12,6 +12,7 @@ except ImportError:
 
 namespaces = {"opf": "http://www.idpf.org/2007/opf", "dc": "http://purl.org/dc/elements/1.1/"}
 
+
 def listEpubFiles(ext):
     meta = []
     for i in glob.glob("*.%s" % ext):
@@ -67,7 +68,6 @@ class EPUB:
         :return: opf Element
         """
         opf = ET.fromstring(ZIP.ZipFile(file).read(self.parseInfo(file)["path_to_opf"]))
-
         return opf
 
     def parseNCX(self, file):
@@ -82,5 +82,11 @@ class EPUB:
         return ncx
 
     def showToc(self):
+
         opf = ET.fromstring(ZIP.ZipFile(self.file).read(self.parseInfo(self.file)["path_to_opf"]))
-        return opf[2]
+        ret = []
+        for i in opf[2]:
+            ret.append(
+                {"idref":i.get("idref"),"href":opf[1].xpath("//*[@id='%s']" % i.get("idref"))[0].get("href")}
+            )
+        return ret
