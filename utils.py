@@ -8,7 +8,7 @@ try:
 except ImportError:
     print("ERROR: lxml library must be installed.")
     # TODO: fallback for xml.Etree
-    sys.exit(1)
+    sys.exit(1) # TODO: Fall graciously
 
 namespaces = {"opf": "http://www.idpf.org/2007/opf", "dc": "http://purl.org/dc/elements/1.1/"}
 
@@ -26,12 +26,12 @@ class EPUB:
         self.file = file
         opf = self.parseOPF(file)
         # this list must grow...
-        self.title = opf.xpath("//dc:title/text()", namespaces=namespaces) or None
-        self.author = opf.xpath("//dc:creator/text()", namespaces=namespaces) or None
-        self.isbn = opf.xpath("//dc:identifier/text()", namespaces=namespaces) or None
-        self.language = opf.xpath("//dc:language/text()", namespaces=namespaces) or None
-        self.publisher = opf.xpath("//dc:publisher/text()", namespaces=namespaces) or None
-        self.pubdate = opf.xpath("//dc:date[@opf:event='publication']/text()", namespaces=namespaces) or None
+        self.title = ", ".join(str(x) for x in opf.xpath("//dc:title/text()", namespaces=namespaces)) or None
+        self.author = ", ".join(str(x) for x in opf.xpath("//dc:creator/text()", namespaces=namespaces)) or None
+        self.isbn = ", ".join(str(x) for x in opf.xpath("//dc:identifier/text()", namespaces=namespaces)) or None
+        self.language = ", ".join(str(x) for x in opf.xpath("//dc:language/text()", namespaces=namespaces)) or None
+        self.publisher = ", ".join(str(x) for x in opf.xpath("//dc:publisher/text()", namespaces=namespaces)) or None
+        self.pubdate = ", ".join(str(x) for x in opf.xpath("//dc:date[@opf:event='publication']/text()", namespaces=namespaces)) or None
 
     def parseInfo(self, file):
         """
@@ -43,18 +43,15 @@ class EPUB:
         try:
             f = ZIP.ZipFile(file).read("META-INF/container.xml")
         except KeyError:
-            print
-            "The %s file is not a valid OCF." % str(file)
-        try:
-            f = ET.fromstring(f)
-            info["path_to_opf"] = f[0][0].get("full-path")
-            root_folder = os.path.dirname(info["path_to_opf"])
-        except:
-            pass
+            print "The %s file is not a valid OCF." % str(file)
+        f = ET.fromstring(f)
+        info["path_to_opf"] = f[0][0].get("full-path")
+        root_folder = os.path.dirname(info["path_to_opf"])
+
         opf = ET.fromstring(ZIP.ZipFile(file).read(info["path_to_opf"]))
 
-        id = opf.xpath("//opf:spine", namespaces=namespaces)[0].get("toc")
-        expr = "//*[@id='{0:s}']".format(id)
+        toc_id = opf.xpath("//opf:spine", namespaces=namespaces)[0].get("toc")
+        expr = "//*[@id='{0:s}']".format(toc_id)
         info["ncx_name"] = opf.xpath(expr)[0].get("href")
         info["path_to_ncx"] = root_folder + "/" + info["ncx_name"]
         info.pop("ncx_name")

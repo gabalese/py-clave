@@ -21,4 +21,7 @@ if __name__ == "__main__":
     except IndexError:
         port = 8080
     application.listen(port)
-    tornado.ioloop.IOLoop.instance().start()
+    try:
+        tornado.ioloop.IOLoop.instance().start()
+    except KeyboardInterrupt:
+        tornado.ioloop.IOLoop.instance().close()
