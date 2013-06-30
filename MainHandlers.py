@@ -44,5 +44,3 @@ class ShowFileToc(tornado.web.RequestHandler):
             self.write(json.JSONEncoder().encode(toc))
         except IOError:
             raise tornado.web.HTTPError(404)
-
-
