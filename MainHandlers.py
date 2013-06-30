@@ -38,8 +38,11 @@ class ListFiles(tornado.web.RequestHandler):
 
 class ShowFileToc(tornado.web.RequestHandler):
     def get(self, filename):
-        toc = EPUB(filename).showToc()
-        self.set_header("Content-Type","application/json")
-        self.write(json.JSONEncoder().encode(toc))
+        try:
+            toc = EPUB(filename).showToc()
+            self.set_header("Content-Type","application/json")
+            self.write(json.JSONEncoder().encode(toc))
+        except IOError:
+            raise tornado.web.HTTPError(404)
 
 

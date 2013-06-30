@@ -11,7 +11,7 @@ application = tornado.web.Application([
     (r"/list", ListFiles),
     (r"/toc/(.*)", ShowFileToc),
     (r'/public/(.*)', tornado.web.StaticFileHandler, {'path': "./public"})
-], debug=False)
+], debug=True)
 
 tornado.web.ErrorHandler = ErrorHandler
 
