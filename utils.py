@@ -8,6 +8,7 @@ try:
 except ImportError:
     print("ERROR: lxml library must be installed.")
     # TODO: fallback for xml.Etree
+    # Complex XPath syntax is not really needed
     sys.exit(1) # TODO: Fall graciously
 
 namespaces = {"opf": "http://www.idpf.org/2007/opf", "dc": "http://purl.org/dc/elements/1.1/"}
