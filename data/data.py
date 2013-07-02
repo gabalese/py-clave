@@ -11,6 +11,7 @@ conn.row_factory = sqlite3.Row
 database = conn.cursor()
 
 if create:
+    #  insert dummy data in DB
     database.execute("""
         CREATE TABLE IF NOT EXISTS books(author text, title text, isbn text, path text);
     """)
