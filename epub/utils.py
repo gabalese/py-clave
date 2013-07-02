@@ -16,7 +16,7 @@ namespaces = {"opf": "http://www.idpf.org/2007/opf", "dc": "http://purl.org/dc/e
 
 def listEpubFiles(ext):
     meta = []
-    for i in glob.glob("*.%s" % ext):
+    for i in glob.glob("./files/*.%s" % ext):
         meta.append(EPUB(i).__dict__)
         # ouch. there must be a more elegant way
     return meta
