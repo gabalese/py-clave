@@ -1,9 +1,11 @@
-import tornado.web
-from utils import EPUB
-from utils import listEpubFiles
 import json
-import tornado.ioloop as IOLoop
 from threading import Thread
+
+import tornado.web
+import tornado.ioloop as IOLoop
+
+from epub.utils import EPUB
+from epub.utils import listEpubFiles
 
 
 class DelegationHandler(tornado.web.RequestHandler):

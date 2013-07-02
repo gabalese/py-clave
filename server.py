@@ -1,7 +1,10 @@
-import tornado.ioloop
 import sys
-from TestHandlers import Echo, MainHandler, PingHandler
-from MainHandlers import GetInfo, ErrorHandler, ListFiles, ShowFileToc
+
+import tornado.ioloop
+
+from controllers.TestHandlers import Echo, MainHandler, PingHandler, CheckDB
+from controllers.MainHandlers import GetInfo, ErrorHandler, ListFiles, ShowFileToc
+
 
 application = tornado.web.Application([
     (r"/", MainHandler),
@@ -10,7 +13,8 @@ application = tornado.web.Application([
     (r"/info/(.*)", GetInfo),
     (r"/list", ListFiles),
     (r"/toc/(.*)", ShowFileToc),
-    (r'/public/(.*)', tornado.web.StaticFileHandler, {'path': "./public"})
+    (r"/checkdb", CheckDB),
+    (r'/public/(.*)', tornado.web.StaticFileHandler, {'path': "./static"})
 ], debug=True)
 
 tornado.web.ErrorHandler = ErrorHandler
