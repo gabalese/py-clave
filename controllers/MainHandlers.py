@@ -8,22 +8,21 @@ from epub.utils import EPUB
 from epub.utils import listEpubFiles
 
 
-class DelegationHandler(tornado.web.RequestHandler):
-    def perform(self, callback):
-        #do something
-        # ... then return to main IOLoop instance
-        output = "out"  # ?
-        tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
-
-    @tornado.web.asynchronous
-    def get(self):
-        self.thread = Thread(target=self.perform, args=(self.on_callback,))
-        self.thread.start()
-        self.flush()  # required when async
-
-    def on_callback(self, output):
-        self.write(output)
-        self.finish()  # needed, when async is involved
+# class DelegationHandler(tornado.web.RequestHandler):
+#     def perform(self, callback):
+#         #do something
+#         # ... then return to main IOLoop instance
+#         tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
+#
+#     @tornado.web.asynchronous
+#     def get(self):
+#         self.thread = Thread(target=self.perform, args=(self.on_callback,))
+#         self.thread.start()
+#         self.flush()  # required when async
+#
+#     def on_callback(self, output):
+#         self.write(output)
+#         self.finish()  # needed, when async is involved
 
 
 class ErrorHandler(tornado.web.RequestHandler):

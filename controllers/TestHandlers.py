@@ -1,6 +1,6 @@
 import tornado.web
 import time
-from data.data import database, conn
+from data.data import opendb, DBNAME
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -21,5 +21,7 @@ class PingHandler(tornado.web.RequestHandler):
 
 class CheckDB(tornado.web.RequestHandler):
     def get(self):
+        database, conn = opendb(DBNAME)
         response = database.execute("SELECT * FROM books WHERE isbn ='97888'").fetchall()
+        conn.close()
         self.write(str(response[0]["author"]))

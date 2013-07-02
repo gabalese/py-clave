@@ -1,17 +1,21 @@
 import sqlite3
 import os
 
+DBNAME = "base.sql"
+
 create = False
-if not os.path.exists("base.sql"):
+if not os.path.exists(DBNAME):
     create = True
 
-conn = sqlite3.connect("base.sql")
-conn.row_factory = sqlite3.Row
 
-database = conn.cursor()
+def opendb(name):
+    conn = sqlite3.connect(DBNAME)
+    conn.row_factory = sqlite3.Row
+    database = conn.cursor()
+    return database, conn
 
 if create:
-    #  insert dummy data in DB
+    database, conn = opendb(DBNAME)#  insert dummy data in DB
     database.execute("""
         CREATE TABLE IF NOT EXISTS books(author text, title text, isbn text, path text);
     """)
@@ -20,3 +24,4 @@ if create:
     INSERT INTO books VALUES ("Giulio Cesare", "De Bello Gallico", "97888", "./here")
     """)
     conn.commit()
+    conn.close()

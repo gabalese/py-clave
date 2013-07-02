@@ -5,9 +5,6 @@ import tornado.ioloop
 from controllers.TestHandlers import Echo, MainHandler, PingHandler, CheckDB
 from controllers.MainHandlers import GetInfo, ErrorHandler, ListFiles, ShowFileToc
 
-from data.data import database, conn
-from data.utils import updateDB
-
 
 application = tornado.web.Application([
     (r"/", MainHandler),
