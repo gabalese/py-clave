@@ -3,24 +3,19 @@ from utils import EPUB
 from utils import listEpubFiles
 import json
 import tornado.ioloop as IOLoop
-import threading
+from threading import Thread
 
 
 class DelegationHandler(tornado.web.RequestHandler):
     def perform(self, callback):
         #do something
         # ... then return to main IOLoop instance
-        #
-        # TODO: turn this in a decorator
         output = "out"  # ?
         tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
 
-    def initialize(self):
-        self.thread = None
-
     @tornado.web.asynchronous
     def get(self):
-        self.thread = threading.Thread(target=self.perform, args=(self.on_callback,))
+        self.thread = Thread(target=self.perform, args=(self.on_callback,))
         self.thread.start()
         self.flush()  # required when async
 
