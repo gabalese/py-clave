@@ -19,7 +19,7 @@ def listEpubFiles(ext):
     """
     meta = []
     for i in glob.glob("./files/*.%s" % ext):
-        meta.append(EPUB(i).meta)
+        meta.append(EPUB(i).file)
         # TODO: search cache first, list files only if db less recent than X
     return meta
 
@@ -29,13 +29,13 @@ class EPUB:
         self.file = file
         opf = self.parseOPF(file)
         self.meta = {}
-        self.content = {}
+        self.contents = []
         for i in opf.find("{0}metadata".format(NAMESPACE["opf"])):
             i.tag = re.sub('\{.*?\}', '', i.tag)
             self.meta[i.tag] = i.text or i.attrib
         for i in opf.find("{0}spine".format(NAMESPACE["opf"])):
-            self.content[i.get("idref")] = os.path.dirname(self.parseInfo(file)["path_to_opf"]) + '/' + \
-                                           opf.find(".//*[@id='%s']" % i.get("idref")).get("href")
+            self.contents.append(os.path.dirname(self.parseInfo(file)["path_to_opf"]) + '/' + \
+                                           opf.find(".//*[@id='%s']" % i.get("idref")).get("href"))
 
 
     def parseInfo(self, file):
@@ -82,13 +82,3 @@ class EPUB:
         ncx = ET.fromstring(ZIP.ZipFile(file).read(self.parseInfo(file)["path_to_ncx"]))
 
         return ncx
-
-    def showToc(self):
-
-        opf = ET.fromstring(ZIP.ZipFile(self.file).read(self.parseInfo(self.file)["path_to_opf"]))
-        ret = []
-        for i in opf[2]:
-            ret.append(
-                {"idref": i.get("idref"), "href": opf[1].xpath("//*[@id='%s']" % i.get("idref"))[0].get("href")}
-            )
-        return ret
