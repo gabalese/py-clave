@@ -32,7 +32,11 @@ class EPUB:
         self.contents = []
         for i in opf.find("{0}metadata".format(NAMESPACE["opf"])):
             i.tag = re.sub('\{.*?\}', '', i.tag)
-            self.meta[i.tag] = i.text or i.attrib
+            if i.tag not in self.meta:
+                self.meta[i.tag] = i.text or i.attrib
+            else:
+                self.meta[i.tag] = [self.meta[i.tag], i.text or i.attrib]
+
         for i in opf.find("{0}spine".format(NAMESPACE["opf"])):
             self.contents.append(os.path.dirname(self.parseInfo(file)["path_to_opf"]) + '/' + \
                                            opf.find(".//*[@id='%s']" % i.get("idref")).get("href"))
