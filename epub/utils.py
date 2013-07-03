@@ -27,6 +27,7 @@ class EPUB:
         self.file = file
         opf = self.parseOPF(file)
         # this list must grow...
+        # TODO: turn into a dictionary
         self.title = ", ".join(str(x) for x in opf.xpath("//dc:title/text()", namespaces=namespaces)) or None
         self.author = ", ".join(str(x) for x in opf.xpath("//dc:creator/text()", namespaces=namespaces)) or None
         self.isbn = ", ".join(str(x) for x in opf.xpath("//dc:identifier/text()", namespaces=namespaces)) or None
