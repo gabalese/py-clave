@@ -11,7 +11,7 @@ NAMESPACE = {
     "opf": "{http://www.idpf.org/2007/opf}"
 }
 
-def listEpubFiles(ext):
+def listFiles(ext):
     """
 
     :param ext:
@@ -24,8 +24,9 @@ def listEpubFiles(ext):
     return meta
 
 
-class EPUB:
+class EPUB(ZIP.ZipFile):
     def __init__(self, file):
+        ZIP.ZipFile.__init__(self, file, "r", )
         self.file = file
         opf = self.parseOPF(file)
         self.meta = {}
@@ -50,14 +51,14 @@ class EPUB:
         """
         info = {}
         try:
-            f = ZIP.ZipFile(file).read("META-INF/container.xml")
+            f = self.read("META-INF/container.xml")
         except KeyError:
             print "The %s file is not a valid OCF." % str(file)
         f = ET.fromstring(f)
         info["path_to_opf"] = f[0][0].get("full-path")
         root_folder = os.path.dirname(info["path_to_opf"])
 
-        opf = ET.fromstring(ZIP.ZipFile(file).read(info["path_to_opf"]))
+        opf = ET.fromstring(self.read(info["path_to_opf"]))
 
         toc_id = opf[2].get("toc")
         expr = ".//*[@id='{0:s}']".format(toc_id)
@@ -73,7 +74,7 @@ class EPUB:
         :param file: file path
         :return: opf Element
         """
-        opf = ET.fromstring(ZIP.ZipFile(file).read(self.parseInfo(file)["path_to_opf"]))
+        opf = ET.fromstring(self.read(self.parseInfo(file)["path_to_opf"]))
         return opf
 
     def parseNCX(self, file):
@@ -83,6 +84,6 @@ class EPUB:
         :param file: file path
         :return: ncx Element
         """
-        ncx = ET.fromstring(ZIP.ZipFile(file).read(self.parseInfo(file)["path_to_ncx"]))
+        ncx = ET.fromstring(self.read(self.parseInfo(file)["path_to_ncx"]))
 
         return ncx

@@ -5,7 +5,7 @@ import tornado.web
 import tornado.ioloop as IOLoop
 
 from epub.utils import EPUB
-from epub.utils import listEpubFiles
+from epub.utils import listFiles
 
 
 # class DelegationHandler(tornado.web.RequestHandler):
@@ -51,7 +51,7 @@ class GetInfo(tornado.web.RequestHandler):
 
 class ListFiles(tornado.web.RequestHandler):
     def get(self):
-        response = listEpubFiles("epub")
+        response = listFiles("epub")
         dump = json.JSONEncoder().encode(response)
         self.set_header("Content-Type", "application/json")
         self.write(dump)
