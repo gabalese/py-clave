@@ -2,23 +2,25 @@ import zipfile as ZIP
 import sys
 import os
 import glob
+import re
+import xml.etree.ElementTree as ET
 
-try:
-    from lxml import etree as ET
-except ImportError:
-    print("ERROR: lxml library must be installed.")
-    # TODO: fallback for xml.Etree
-    # Complex XPath syntax is not really needed
-    sys.exit(1) # TODO: Fall graciously
 
-namespaces = {"opf": "http://www.idpf.org/2007/opf", "dc": "http://purl.org/dc/elements/1.1/"}
-
+NAMESPACE = {
+    "dc": "{http://purl.org/dc/elements/1.1/}",
+    "opf": "{http://www.idpf.org/2007/opf}"
+}
 
 def listEpubFiles(ext):
+    """
+
+    :param ext:
+    :return:
+    """
     meta = []
     for i in glob.glob("./files/*.%s" % ext):
-        meta.append(EPUB(i).__dict__)
-        # ouch. there must be a more elegant way
+        meta.append(EPUB(i).meta)
+        # TODO: search cache first, list files only if db less recent than X
     return meta
 
 
@@ -26,14 +28,15 @@ class EPUB:
     def __init__(self, file):
         self.file = file
         opf = self.parseOPF(file)
-        # this list must grow...
-        # TODO: turn into a dictionary
-        self.title = ", ".join(str(x) for x in opf.xpath("//dc:title/text()", namespaces=namespaces)) or None
-        self.author = ", ".join(str(x) for x in opf.xpath("//dc:creator/text()", namespaces=namespaces)) or None
-        self.isbn = ", ".join(str(x) for x in opf.xpath("//dc:identifier/text()", namespaces=namespaces)) or None
-        self.language = ", ".join(str(x) for x in opf.xpath("//dc:language/text()", namespaces=namespaces)) or None
-        self.publisher = ", ".join(str(x) for x in opf.xpath("//dc:publisher/text()", namespaces=namespaces)) or None
-        self.pubdate = ", ".join(str(x) for x in opf.xpath("//dc:date[@opf:event='publication']/text()", namespaces=namespaces)) or None
+        self.meta = {}
+        self.content = {}
+        for i in opf.find("{0}metadata".format(NAMESPACE["opf"])):
+            i.tag = re.sub('\{.*?\}', '', i.tag)
+            self.meta[i.tag] = i.text or i.attrib
+        for i in opf.find("{0}spine".format(NAMESPACE["opf"])):
+            self.content[i.get("idref")] = os.path.dirname(self.parseInfo(file)["path_to_opf"]) + '/' + \
+                                           opf.find(".//*[@id='%s']" % i.get("idref")).get("href")
+
 
     def parseInfo(self, file):
         """
@@ -52,9 +55,9 @@ class EPUB:
 
         opf = ET.fromstring(ZIP.ZipFile(file).read(info["path_to_opf"]))
 
-        toc_id = opf.xpath("//opf:spine", namespaces=namespaces)[0].get("toc")
-        expr = "//*[@id='{0:s}']".format(toc_id)
-        info["ncx_name"] = opf.xpath(expr)[0].get("href")
+        toc_id = opf[2].get("toc")
+        expr = ".//*[@id='{0:s}']".format(toc_id)
+        info["ncx_name"] = opf.find(expr).get("href")
         info["path_to_ncx"] = root_folder + "/" + info["ncx_name"]
         info.pop("ncx_name")
 
@@ -86,6 +89,6 @@ class EPUB:
         ret = []
         for i in opf[2]:
             ret.append(
-                {"idref":i.get("idref"),"href":opf[1].xpath("//*[@id='%s']" % i.get("idref"))[0].get("href")}
+                {"idref": i.get("idref"), "href": opf[1].xpath("//*[@id='%s']" % i.get("idref"))[0].get("href")}
             )
         return ret
