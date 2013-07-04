@@ -8,8 +8,9 @@ if not os.path.exists(DBNAME):
     create = True
 
 
-def opendb(name):
-    conn = sqlite3.connect(DBNAME)
+def opendb(name=DBNAME):
+    conn = sqlite3.connect(name)
+    # noinspection PyPropertyAccess
     conn.row_factory = sqlite3.Row
     database = conn.cursor()
     return database, conn

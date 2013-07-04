@@ -1,5 +1,6 @@
 import sys
 
+import tornado.web
 import tornado.ioloop
 
 from controllers.TestHandlers import Echo, MainHandler, PingHandler, CheckDB
@@ -29,6 +30,10 @@ if __name__ == "__main__":
     application.listen(port)
     try:
         updateDB(DBNAME, "epub")
+
+        periodic = tornado.ioloop.PeriodicCallback(updateDB, 60000)
+        periodic.start()
+
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt:
         tornado.ioloop.IOLoop.instance().close()

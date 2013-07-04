@@ -58,7 +58,7 @@ class GetInfo(tornado.web.RequestHandler):
 class ListFiles(tornado.web.RequestHandler):
 
     def get(self):
-        response = listFiles("epub")
+        response = listFiles()
         dump = json.JSONEncoder().encode(response)
         self.set_header("Content-Type", "application/json")
         self.write(dump)
