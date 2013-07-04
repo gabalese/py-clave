@@ -1,6 +1,6 @@
 import json
 from threading import Thread
-
+import sys
 import tornado.web
 import tornado.ioloop as IOLoop
 
@@ -30,7 +30,7 @@ class GetInfo(tornado.web.RequestHandler):
             try:
                 self.thread = Thread(target=self.querydb, args=(self.on_callback,filename,))
                 self.thread.start()
-                #self.flush()
+                self.flush()
             except IOError:
                 raise tornado.web.HTTPError(404)
         else:
@@ -38,7 +38,12 @@ class GetInfo(tornado.web.RequestHandler):
 
     def querydb(self, callback, isbn):
         database, conn = opendb(DBNAME)
-        path = database.execute("SELECT path FROM books WHERE isbn = '{0}' ".format(isbn)).fetchone()["path"]
+        try:
+            path = database.execute("SELECT path FROM books WHERE isbn = '{0}' ".format(isbn)).fetchone()["path"]
+        except TypeError:
+            output = ""
+            tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(""))
+            raise tornado.web.HTTPError(404)
         output = EPUB(path).meta
         tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
 
