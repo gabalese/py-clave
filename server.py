@@ -3,7 +3,7 @@ import sys
 import tornado.web
 import tornado.ioloop
 
-from controllers.TestHandlers import Echo, MainHandler, PingHandler, CheckDB
+from controllers.TestHandlers import MainHandler, PingHandler, CheckDB
 from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, ShowFileToc
 
 from data.utils import updateDB, DBNAME
@@ -11,7 +11,6 @@ from data.utils import updateDB, DBNAME
 
 application = tornado.web.Application([
     (r"/", MainHandler),
-    (r"/echo", Echo),
     (r"/ping", PingHandler),
     (r"/info/(.*)", GetInfo),
     (r"/list", ListFiles),
