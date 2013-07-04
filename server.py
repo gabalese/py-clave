@@ -5,6 +5,8 @@ import tornado.ioloop
 from controllers.TestHandlers import Echo, MainHandler, PingHandler, CheckDB
 from controllers.MainHandlers import GetInfo, ErrorHandler, ListFiles, ShowFileToc
 
+from data.utils import updateDB, DBNAME
+
 
 application = tornado.web.Application([
     (r"/", MainHandler),
@@ -26,6 +28,7 @@ if __name__ == "__main__":
         port = 8080
     application.listen(port)
     try:
+        updateDB(DBNAME, "epub")
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt:
         tornado.ioloop.IOLoop.instance().close()

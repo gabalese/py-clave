@@ -15,13 +15,15 @@ def opendb(name):
     return database, conn
 
 if create:
-    database, conn = opendb(DBNAME)#  insert dummy data in DB
+    database, conn = opendb(DBNAME)  # insert dummy data in DB
     database.execute("""
-        CREATE TABLE IF NOT EXISTS books(author text, title text, isbn text, path text);
-    """)
-
-    database.execute("""
-    INSERT INTO books VALUES ("Giulio Cesare", "De Bello Gallico", "97888", "./here")
+        CREATE TABLE IF NOT EXISTS
+            books(
+                author text,
+                title text,
+                isbn text UNIQUE,
+                path text PRIMARY KEY
+                );
     """)
     conn.commit()
     conn.close()

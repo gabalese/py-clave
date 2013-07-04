@@ -1,5 +1,6 @@
 import tornado.web
 import time
+import json
 from data.data import opendb, DBNAME
 
 
@@ -22,6 +23,9 @@ class PingHandler(tornado.web.RequestHandler):
 class CheckDB(tornado.web.RequestHandler):
     def get(self):
         database, conn = opendb(DBNAME)
-        response = database.execute("SELECT * FROM books WHERE isbn ='97888'").fetchall()
+        response = database.execute("SELECT * FROM books").fetchall()
         conn.close()
-        self.write(str(response[0]["author"]))
+        reply = ["%s, %s, %s, %s" % (resp["isbn"],
+                                     resp["author"], resp["title"], resp["path"])
+                 for resp in response]
+        self.write(json.JSONEncoder().encode(reply))
