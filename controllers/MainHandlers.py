@@ -7,22 +7,7 @@ import tornado.ioloop as IOLoop
 from epub.utils import EPUB
 from epub.utils import listFiles
 
-
-# class DelegationHandler(tornado.web.RequestHandler):
-#     def perform(self, callback):
-#         #do something
-#         # ... then return to main IOLoop instance
-#         tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
-#
-#     @tornado.web.asynchronous
-#     def get(self):
-#         self.thread = Thread(target=self.perform, args=(self.on_callback,))
-#         self.thread.start()
-#         self.flush()  # required when async
-#
-#     def on_callback(self, output):
-#         self.write(output)
-#         self.finish()  # needed, when async is involved
+from data.utils import opendb, DBNAME
 
 
 class ErrorHandler(tornado.web.RequestHandler):
@@ -38,15 +23,30 @@ class ErrorHandler(tornado.web.RequestHandler):
 
 
 class GetInfo(tornado.web.RequestHandler):
+
+    @tornado.web.asynchronous
     def get(self, filename):
         if filename:
             try:
-                m = EPUB(filename)
+                self.thread = Thread(target=self.querydb, args=(self.on_callback,filename,))
+                self.thread.start()
+                #self.flush()
             except IOError:
                 raise tornado.web.HTTPError(404)
-            self.write(m.meta)
         else:
             raise tornado.web.HTTPError(400)
+
+    def querydb(self, callback, isbn):
+        database, conn = opendb(DBNAME)
+        path = database.execute("SELECT path FROM books WHERE isbn = '{0}' ".format(isbn)).fetchone()["path"]
+        output = EPUB(path).meta
+        tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
+
+    def on_callback(self, output):
+        self.set_header("Content-Type", "application/json")  # when async, no auto json if dict
+        self.write(output)
+        self.flush()
+        self.finish()
 
 
 class ListFiles(tornado.web.RequestHandler):
