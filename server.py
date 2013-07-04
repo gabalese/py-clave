@@ -3,7 +3,7 @@ import sys
 import tornado.ioloop
 
 from controllers.TestHandlers import Echo, MainHandler, PingHandler, CheckDB
-from controllers.MainHandlers import GetInfo, ErrorHandler, ListFiles, ShowFileToc
+from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, ShowFileToc
 
 from data.utils import updateDB, DBNAME
 
@@ -19,7 +19,7 @@ application = tornado.web.Application([
     (r'/public/(.*)', tornado.web.StaticFileHandler, {'path': "./static"})
 ], debug=True)
 
-tornado.web.ErrorHandler = ErrorHandler
+tornado.web.ErrorHandler = GeneralErrorHandler
 
 if __name__ == "__main__":
     try:
