@@ -80,7 +80,7 @@ class ShowFileToc(tornado.web.RequestHandler):
     def perform(self, callback, identifier):
         database, conn = opendb(DBNAME)
         try:
-            path = database.execute("SELECT path FROM books WHERE isbn = {0}".format(identifier)).fetchone()["path"]
+            path = database.execute("SELECT path FROM books WHERE isbn = '{0}'".format(identifier)).fetchone()["path"]
         except TypeError:
             output = ""
             tornado.ioloop.IOLoop.instance().add_callback(lambda: callback("Nope."))
