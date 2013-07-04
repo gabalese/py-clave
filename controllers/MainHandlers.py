@@ -26,6 +26,7 @@ class GetInfo(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, filename):
         if filename:
+
             try:
                 self.thread = Thread(target=self.querydb, args=(self.on_callback,filename,))
                 self.thread.start()
@@ -36,14 +37,15 @@ class GetInfo(tornado.web.RequestHandler):
 
     def querydb(self, callback, isbn):
         database, conn = opendb(DBNAME)
+
         try:
             path = database.execute("SELECT path FROM books WHERE isbn = '{0}' ".format(isbn)).fetchone()["path"]
         except TypeError:
-            output = ""
             tornado.ioloop.IOLoop.instance().add_callback(lambda: callback("Nope."))
             raise tornado.web.HTTPError(404)
         finally:
             conn.close()
+
         output = EPUB(path).meta
         tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
 
@@ -54,6 +56,7 @@ class GetInfo(tornado.web.RequestHandler):
 
 
 class ListFiles(tornado.web.RequestHandler):
+
     def get(self):
         response = listFiles("epub")
         dump = json.JSONEncoder().encode(response)
@@ -62,6 +65,7 @@ class ListFiles(tornado.web.RequestHandler):
 
 
 class ShowFileToc(tornado.web.RequestHandler):
+
     @tornado.web.asynchronous
     def get(self, identifier):
         if identifier:
@@ -83,6 +87,7 @@ class ShowFileToc(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(404)
         finally:
             conn.close()
+
         output = EPUB(path).contents
         tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
 
