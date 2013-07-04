@@ -20,13 +20,13 @@ def listFiles():
 
     :return:
     """
-    meta = []
+    meta = {}
     database, conn = opendb(DBNAME)
     result = database.execute("""
-                SELECT path FROM books
+                SELECT isbn, title, path FROM books
             """)
     for entry in result:
-        meta.append(entry["path"])
+        meta[entry["isbn"]] = [entry["title"], entry["path"]]
 
     # for i in glob.glob("./files/*.%s" % ext):
     #     meta.append(EPUB(i).file)
