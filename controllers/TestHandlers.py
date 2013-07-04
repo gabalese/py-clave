@@ -6,7 +6,7 @@ from data.data import opendb, DBNAME
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("./static/index.html")
+        self.render("../static/index.html")
 
 
 class PingHandler(tornado.web.RequestHandler):

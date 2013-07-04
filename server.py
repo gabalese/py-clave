@@ -2,6 +2,7 @@ import sys
 
 import tornado.web
 import tornado.ioloop
+from threading import Thread
 
 from controllers.TestHandlers import MainHandler, PingHandler, CheckDB
 from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, ShowFileToc
@@ -28,9 +29,10 @@ if __name__ == "__main__":
         port = 8080
     application.listen(port)
     try:
-        updateDB(DBNAME, "epub")
+        thread = Thread(target=updateDB)
+        thread.start()
 
-        periodic = tornado.ioloop.PeriodicCallback(updateDB, 60000)
+        periodic = tornado.ioloop.PeriodicCallback(Thread(target=updateDB).start, 60000)
         periodic.start()
 
         tornado.ioloop.IOLoop.instance().start()

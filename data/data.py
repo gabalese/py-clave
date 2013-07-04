@@ -1,6 +1,7 @@
 import sqlite3
 import os
 
+
 DBNAME = "base.sql"
 
 create = False
