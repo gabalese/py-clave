@@ -1,13 +1,17 @@
 import os
-from data import DBNAME, opendb
+from data import DBNAME, opendb, EPUB_FILES_PATH
 import epub.utils
 
 
 def updateDB(db=DBNAME, ext="epub"):
+    """
 
+    :param db:
+    :param ext:
+    """
     print "Updating db %s..." % db
     database, conn = opendb(db)
-    for path, dirs, files in os.walk("."):
+    for path, dirs, files in os.walk(EPUB_FILES_PATH):
         for singular in files:
             if singular.endswith(ext):
                 filepath = os.path.join(path, singular)
@@ -21,8 +25,8 @@ def updateDB(db=DBNAME, ext="epub"):
     else:
         conn.commit()
         conn.close()
-        print "... update over."
-        #  this is an EXPENSIVE function, use at startup
+        print "... update done."
+        #  this is an EXPENSIVE function, use at startup or spawn a thread
 
 if __name__ == "__main__":
     updateDB(DBNAME)  # autotest only

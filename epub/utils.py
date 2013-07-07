@@ -1,6 +1,5 @@
 import zipfile as ZIP
 import os
-#import glob
 import re
 import xml.etree.ElementTree as ET
 
@@ -12,8 +11,10 @@ NAMESPACE = {
     "opf": "{http://www.idpf.org/2007/opf}"
 }
 
+
 class InvalidEpub(Exception):
     pass
+
 
 def listFiles():
     """
@@ -27,9 +28,6 @@ def listFiles():
             """)
     for entry in result:
         meta[entry["isbn"]] = [entry["title"], entry["path"]]
-
-    # for i in glob.glob("./files/*.%s" % ext):
-    #     meta.append(EPUB(i).file)
     return meta
 
 
@@ -46,13 +44,10 @@ class EPUB(ZIP.ZipFile):
                 self.meta[i.tag] = i.text or i.attrib
             else:
                 self.meta[i.tag] = [self.meta[i.tag], i.text or i.attrib]
-
         for i in opf.find("{0}spine".format(NAMESPACE["opf"])):
-            self.contents.append(os.path.dirname(self.parseInfo(filename)["path_to_opf"]) + '/' + \
-                                           opf.find(".//*[@id='%s']" % i.get("idref")).get("href"))
-
+            self.contents.append(os.path.dirname(self.parseInfo(filename)["path_to_opf"]) + '/' +
+                                 opf.find(".//*[@id='%s']" % i.get("idref")).get("href"))
         self.id = self.meta["identifier"] or None
-
 
     def parseInfo(self, filename):
         """

@@ -11,7 +11,7 @@ class MainHandler(tornado.web.RequestHandler):
 
 class PingHandler(tornado.web.RequestHandler):
     def get(self):
-        response = {"status": "200OK", "timestamp": time.time()}
+        response = {"status": "200 OK", "timestamp": time.time()}
         self.write(response)
 
 
