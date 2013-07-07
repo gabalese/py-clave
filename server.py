@@ -29,10 +29,11 @@ if __name__ == "__main__":
         port = 8080
     application.listen(port)
     try:
-        thread = Thread(target=updateDB)
-        thread.start()
+        def update_db_new_thread():
+            x = Thread(target=updateDB())
+            x.start()
 
-        periodic = tornado.ioloop.PeriodicCallback(Thread(target=updateDB).start, 60000)
+        periodic = tornado.ioloop.PeriodicCallback(update_db_new_thread, 2000) # sub-optimal
         periodic.start()
 
         tornado.ioloop.IOLoop.instance().start()
