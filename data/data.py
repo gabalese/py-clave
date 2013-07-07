@@ -9,7 +9,6 @@ if not os.path.exists(DBNAME):
 else:
     create = False
 
-
 def opendb(name=DBNAME):
     """
 
