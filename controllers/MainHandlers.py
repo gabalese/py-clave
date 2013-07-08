@@ -174,6 +174,7 @@ class GetFilePath(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(404)
         finally:
             conn.close()
+        filepath = ""
         try:
             epub = EPUB(os.path.join(EPUB_FILES_PATH, path))
             for i in epub.namelist():
@@ -193,4 +194,3 @@ class GetFilePath(tornado.web.RequestHandler):
         self.write(output)
         self.flush()
         self.finish()
-
