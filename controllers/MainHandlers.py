@@ -132,14 +132,15 @@ class GetFilePart(tornado.web.RequestHandler):
                     part_path = i[part]
             output = epub.read(part_path)
 
-            output = re.sub(r'href="(.*?)"', 'href="/getpath/{0}/\g<1>"'.format(identifier), output)
-            output = re.sub(r"href='(.*?)'", 'href="/getpath/{0}/\g<1>"'.format(identifier), output)
+            output = re.sub(r'(href|src)="(.*?)"', '\g<1>="/getpath/{0}/\g<2>"'.format(identifier), output)
+            output = re.sub(r"(href|src)='(.*?)'", '\g<1>="/getpath/{0}/\g<2>"'.format(identifier), output)
             # When a browser GETs a HTML, it also call every external resource declared in href=""s
             # When a relative path gets called, the browser appends the path to the getpart/xxx and raises a 404
             # I'll figure it out, eventually.
 
         except KeyError:
             output = "Nope."
+            tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
             raise tornado.web.HTTPError(404)
 
         tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
