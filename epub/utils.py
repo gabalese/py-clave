@@ -45,8 +45,8 @@ class EPUB(ZIP.ZipFile):
             else:
                 self.meta[i.tag] = [self.meta[i.tag], i.text or i.attrib]
         for i in opf.find("{0}spine".format(NAMESPACE["opf"])):
-            self.contents.append(os.path.dirname(self.parseInfo(filename)["path_to_opf"]) + '/' +
-                                 opf.find(".//*[@id='%s']" % i.get("idref")).get("href"))
+            self.contents.append({i.get("idref"): os.path.dirname(self.parseInfo(filename)["path_to_opf"]) + "/" +
+                                  opf.find(".//*[@id='%s']" % i.get("idref")).get("href")})
         self.id = self.meta["identifier"] or None
 
     def parseInfo(self, filename):

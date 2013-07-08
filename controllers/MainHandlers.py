@@ -1,4 +1,6 @@
 import json
+import os
+
 from threading import Thread
 import tornado.web
 import tornado.ioloop as IOLoop
@@ -6,7 +8,7 @@ import tornado.ioloop as IOLoop
 from epub.utils import EPUB
 from epub.utils import listFiles
 
-from data.utils import opendb, DBNAME
+from data.utils import opendb, DBNAME, EPUB_FILES_PATH
 
 
 class GeneralErrorHandler(tornado.web.RequestHandler):
@@ -88,7 +90,7 @@ class ShowFileToc(tornado.web.RequestHandler):
         finally:
             conn.close()
 
-        output = EPUB(path).contents
+        output = EPUB(os.path.join(EPUB_FILES_PATH, path)).contents
         tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
 
     def on_callback(self, output):
