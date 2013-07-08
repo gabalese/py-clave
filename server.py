@@ -34,7 +34,7 @@ if __name__ == "__main__":
             x.start()
         update_db_new_thread()
 
-        periodic = tornado.ioloop.PeriodicCallback(update_db_new_thread, 2000)  # sub-optimal
+        periodic = tornado.ioloop.PeriodicCallback(update_db_new_thread, 10000)  # sub-optimal
         periodic.start()
 
         tornado.ioloop.IOLoop.instance().start()

@@ -9,7 +9,7 @@ def updateDB(db=DBNAME, ext="epub"):
     :param db:
     :param ext:
     """
-    print "Updating db %s..." % db
+    print "Updating db %s..." % os.path.basename(db)
     database, conn = opendb(db)
     for path, dirs, files in os.walk(EPUB_FILES_PATH):
         for singular in files:
@@ -21,7 +21,7 @@ def updateDB(db=DBNAME, ext="epub"):
                 """.format(epubfile.meta["creator"],
                            epubfile.meta["title"],
                            epubfile.id,
-                           filepath))
+                           os.path.basename(filepath)))
     else:
         conn.commit()
         conn.close()

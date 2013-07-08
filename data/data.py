@@ -1,13 +1,35 @@
 import sqlite3
 import os
 
-DBNAME = "base.sql"
-EPUB_FILES_PATH = "."
+DBNAME = os.path.join(os.path.dirname(__file__), os.pardir, "base.sql")
+EPUB_FILES_PATH = os.path.join(os.path.dirname(__file__), os.pardir, "files")
 
 if not os.path.exists(DBNAME):
     create = True
 else:
     create = False
+
+
+class DatabaseConnection():
+    def __init__(self, name=DBNAME):
+        self.conn = sqlite3.connect(name)
+        # noinspection PyPropertyAccess
+        self.conn.row_factory = sqlite3.Row
+        self.database = conn.cursor()
+
+    def insert(self):
+        pass
+
+    def query(self):
+        pass
+
+    def update(self):
+        pass
+
+    def exit(self):
+        self.conn.commit()
+        self.conn.close()
+
 
 def opendb(name=DBNAME):
     """
@@ -22,6 +44,7 @@ def opendb(name=DBNAME):
     return database, conn
 
 if create:
+    print "No suitable DB found, creating one..."
     database, conn = opendb(DBNAME)
     database.execute("""
         CREATE TABLE IF NOT EXISTS
@@ -34,3 +57,4 @@ if create:
     """)
     conn.commit()
     conn.close()
+    print "DB created, with the name of %s" % os.path.basename(DBNAME)
