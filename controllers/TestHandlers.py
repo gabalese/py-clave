@@ -6,7 +6,7 @@ from data.data import opendb, DBNAME
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.set_header("Content-Type","text/plain")
+        self.set_header("Content-Type", "text/plain")
         self.render("../README.md")
 
 

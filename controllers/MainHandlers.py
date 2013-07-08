@@ -30,7 +30,7 @@ class GetInfo(tornado.web.RequestHandler):
         if filename:
 
             try:
-                self.thread = Thread(target=self.querydb, args=(self.on_callback,filename,))
+                self.thread = Thread(target=self.querydb, args=(self.on_callback, filename,))
                 self.thread.start()
             except IOError:
                 raise tornado.web.HTTPError(404)
@@ -94,7 +94,7 @@ class ShowFileToc(tornado.web.RequestHandler):
         tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
 
     def on_callback(self, output):
-        self.set_header("Content-Type","application/json")
+        self.set_header("Content-Type", "application/json")
         self.write(json.JSONEncoder().encode(output))
         self.flush()
         self.finish()
