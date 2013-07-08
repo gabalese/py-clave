@@ -48,7 +48,7 @@ class GetInfo(tornado.web.RequestHandler):
         finally:
             conn.close()
 
-        output = EPUB(path).meta
+        output = EPUB(os.path.join(EPUB_FILES_PATH, path)).meta
         tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
 
     def on_callback(self, output):
