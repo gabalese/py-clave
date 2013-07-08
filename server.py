@@ -5,7 +5,7 @@ import tornado.ioloop
 from threading import Thread
 
 from controllers.TestHandlers import MainHandler, PingHandler, CheckDB
-from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, ShowFileToc, GetFilePart
+from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, ShowFileToc, GetFilePart, GetFilePath
 
 from data.utils import updateDB, DBNAME
 
@@ -17,6 +17,7 @@ application = tornado.web.Application([
     (r"/list", ListFiles),
     (r"/toc/(.*)", ShowFileToc),
     (r"/getpart/(.*?)/(.*?)", GetFilePart),
+    (r"/getpath/(.*?)/(.*?)", GetFilePath),
     (r"/checkdb", CheckDB),
     (r'/public/(.*)', tornado.web.StaticFileHandler, {'path': "./static"})
 ], debug=True)
