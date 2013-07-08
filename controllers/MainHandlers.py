@@ -20,7 +20,7 @@ class GeneralErrorHandler(tornado.web.RequestHandler):
         self.write("Nope.")
 
     def prepare(self):
-        raise tornado.web.HTTPError(self._status_code)
+        raise tornado.web.HTTPError(400)
 
 
 class GetInfo(tornado.web.RequestHandler):
@@ -96,5 +96,43 @@ class ShowFileToc(tornado.web.RequestHandler):
     def on_callback(self, output):
         self.set_header("Content-Type","application/json")
         self.write(json.JSONEncoder().encode(output))
+        self.flush()
+        self.finish()
+
+
+class GetFilePart(tornado.web.RequestHandler):
+
+    @tornado.web.asynchronous
+    def get(self, identifier, part):
+        if identifier and part:
+            try:
+                self.thread = Thread(target=self.perform, args=(self.on_callback, identifier, part,))
+                self.thread.start()
+            except IOError:
+                raise tornado.web.HTTPError(404)
+        else:
+            raise tornado.web.HTTPError(400)
+
+    def perform(self, callback, identifier, part):
+        database, conn = opendb(DBNAME)
+        try:
+            path = database.execute("SELECT path FROM books WHERE isbn = '{0}'".format(identifier)).fetchone()["path"]
+        except TypeError:
+            output = ""
+            tornado.ioloop.IOLoop.instance().add_callback(lambda: callback("Nope."))
+            raise tornado.web.HTTPError(404)
+        finally:
+            conn.close()
+        try:
+            output = EPUB(os.path.join(EPUB_FILES_PATH, path)).read(part)
+        except KeyError:
+            output = "Not found."
+            raise tornado.web.HTTPError(404)
+        finally:
+            tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
+
+    def on_callback(self, output):
+        self.set_header("Content-Type", "text/html")
+        self.write(output)
         self.flush()
         self.finish()
