@@ -1,5 +1,5 @@
 import json
-import os
+import xml.dom.minidom as dom
 import re
 
 from threading import Thread
@@ -9,7 +9,7 @@ import tornado.ioloop as IOLoop
 from epub.utils import EPUB
 from epub.utils import listFiles
 
-from data.utils import opendb, DBNAME, EPUB_FILES_PATH
+from data.utils import opendb, DBNAME
 
 
 class GeneralErrorHandler(tornado.web.RequestHandler):
@@ -18,7 +18,7 @@ class GeneralErrorHandler(tornado.web.RequestHandler):
         self.set_status(status_code)
 
     def write_error(self, status, **kwargs):
-        self.write("Nope.")
+        self.write("Bad request")
 
     def prepare(self):
         raise tornado.web.HTTPError(400)
@@ -104,17 +104,23 @@ class ShowFileToc(tornado.web.RequestHandler):
 class GetFilePart(tornado.web.RequestHandler):
 
     @tornado.web.asynchronous
-    def get(self, identifier, part):
-        if identifier and part:
+    def get(self, identifier, part, section=False):
+        if identifier and part and not section:
             try:
                 self.thread = Thread(target=self.perform, args=(self.on_callback, identifier, part,))
                 self.thread.start()
             except IOError:
                 raise tornado.web.HTTPError(404)
+        elif identifier and part and section:
+            try:
+                self.thread = Thread(target=self.perform, args=(self.on_callback, identifier, part, section,))
+                self.thread.start()
+            except IOError:
+                raise tornado.web.HTTPError(404)
         else:
-            raise tornado.web.HTTPError(400)
+            raise tornado.web.HTTPError(405)
 
-    def perform(self, callback, identifier, part):
+    def perform(self, callback, identifier, part, section=False):
         database, conn = opendb(DBNAME)
         try:
             path = database.execute("SELECT path FROM books WHERE isbn = '{0}'".format(identifier)).fetchone()["path"]
@@ -134,11 +140,14 @@ class GetFilePart(tornado.web.RequestHandler):
 
             output = re.sub(r'(href|src)="(.*?)"', '\g<1>="/getpath/{0}/\g<2>"'.format(identifier), output)
             output = re.sub(r"(href|src)='(.*?)'", '\g<1>="/getpath/{0}/\g<2>"'.format(identifier), output)
-            # When a browser GETs a HTML, it also call every external resource declared in href=""s
-            # When a relative path gets called, the browser appends the path to the getpart/xxx and raises a 404
-            # I'll figure it out, eventually.
 
-        except KeyError:
+            if section:
+                root = dom.parseString(output)
+                section = int(section) - 1
+                name = root.getElementsByTagName("p")[section]
+                output = " ".join([t.nodeValue for t in name.childNodes])
+
+        except (KeyError, Exception):
             output = "Nope."
             tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
             raise tornado.web.HTTPError(404)
@@ -147,6 +156,7 @@ class GetFilePart(tornado.web.RequestHandler):
 
     def on_callback(self, output):
         self.set_header("Content-Type", "text/html")
+        self.set_header("Charset","UTF-8")
         self.write(output)
         self.flush()
         self.finish()

@@ -12,14 +12,19 @@ from data.utils import updateDB, DBNAME
 
 application = tornado.web.Application([
     (r"/", MainHandler),
+    #  Test
     (r"/ping", PingHandler),
-    (r"/info/(.*)", GetInfo),
-    (r"/list", ListFiles),
-    (r"/toc/(.*)", ShowFileToc),
-    (r"/getpart/(.*?)/(.*?)", GetFilePart),
-    (r"/getpath/(.*?)/(.*?)", GetFilePath),
     (r"/checkdb", CheckDB),
-    (r'/public/(.*)', tornado.web.StaticFileHandler, {'path': "./static"})
+    #  Metadata
+    (r"/catalogue", ListFiles),
+    (r"/book/([^/]+$)", GetInfo),
+    (r"/book/([^/]+)/toc", ShowFileToc),
+    #  Parts
+    (r"/book/([^/]+)/chapter/([^/]+)", GetFilePart),
+    (r"/book/([^/]+)/chapter/([^/]+)/fragment/([^/]+)", GetFilePart),
+    #  Resolution fallback
+    (r"/getpath/([^/]+)/([^/]+)", GetFilePath),
+    (r'/public/([^/]+)', tornado.web.StaticFileHandler, {'path': "./static"})
 ], debug=True)
 
 tornado.web.ErrorHandler = GeneralErrorHandler
