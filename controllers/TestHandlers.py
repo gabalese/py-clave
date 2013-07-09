@@ -24,4 +24,5 @@ class CheckDB(tornado.web.RequestHandler):
         reply = ["%s, %s, %s, %s" % (resp["isbn"],
                                      resp["author"], resp["title"], resp["path"])
                  for resp in response]
+        self.set_header("Content-Type", "application/json")
         self.write(json.JSONEncoder().encode(reply))
