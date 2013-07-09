@@ -184,7 +184,7 @@ class GetFilePath(tornado.web.RequestHandler):
             output = epub.read(filepath)
 
         except KeyError:
-            print filepath
+            output = "Nope."
             pass
 
         finally:
