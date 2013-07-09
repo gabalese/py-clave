@@ -39,7 +39,7 @@ class GetInfo(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(400)
 
     def querydb(self, callback, isbn):
-        database, conn = opendb(DBNAME)
+        database, conn = opendb()
 
         try:
             path = database.execute("SELECT path FROM books WHERE isbn = '{0}' ".format(isbn)).fetchone()["path"]
@@ -81,7 +81,7 @@ class ShowFileToc(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(400)
 
     def perform(self, callback, identifier):
-        database, conn = opendb(DBNAME)
+        database, conn = opendb()
         try:
             path = database.execute("SELECT path FROM books WHERE isbn = '{0}'".format(identifier)).fetchone()["path"]
         except TypeError:
@@ -121,7 +121,7 @@ class GetFilePart(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(405)
 
     def perform(self, callback, identifier, part, section=False):
-        database, conn = opendb(DBNAME)
+        database, conn = opendb()
         try:
             path = database.execute("SELECT path FROM books WHERE isbn = '{0}'".format(identifier)).fetchone()["path"]
         except TypeError:
@@ -176,7 +176,7 @@ class GetFilePath(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(400)
 
     def perform(self, callback, identifier, part):
-        database, conn = opendb(DBNAME)
+        database, conn = opendb()
         try:
             path = database.execute("SELECT path FROM books WHERE isbn = '{0}'".format(identifier)).fetchone()["path"]
         except TypeError:

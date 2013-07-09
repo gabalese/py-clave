@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     try:
         def update_db_new_thread():
-            x = Thread(target=updateDB(DBNAME))
+            x = Thread(target=updateDB())
             x.start()
         update_db_new_thread()
 

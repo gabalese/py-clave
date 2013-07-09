@@ -20,7 +20,7 @@ class PingHandler(tornado.web.RequestHandler):
 
 class CheckDB(tornado.web.RequestHandler):
     def get(self):
-        database, conn = opendb(DBNAME)
+        database, conn = opendb()
         response = database.execute("SELECT * FROM books").fetchall()
         conn.close()
         reply = ["%s, %s, %s, %s" % (resp["isbn"],

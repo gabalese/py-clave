@@ -22,7 +22,7 @@ def listFiles():
     :return:
     """
     meta = {}
-    database, conn = opendb(DBNAME)
+    database, conn = opendb()
     result = database.execute("""
                 SELECT isbn, title, path FROM books
             """)

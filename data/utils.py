@@ -28,4 +28,4 @@ def updateDB(db=DBNAME, ext="epub"):
         print "... update done."
 
 if __name__ == "__main__":
-    updateDB(DBNAME)  # autotest only
+    updateDB()  # autotest only

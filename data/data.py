@@ -45,7 +45,7 @@ def opendb(name=DBNAME):
 
 if create:
     print "No suitable DB found, creating one..."
-    database, conn = opendb(DBNAME)
+    database, conn = opendb()
     database.execute("""
         CREATE TABLE IF NOT EXISTS
             books(
