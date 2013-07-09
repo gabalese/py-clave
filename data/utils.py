@@ -21,12 +21,11 @@ def updateDB(db=DBNAME, ext="epub"):
                 """.format(epubfile.meta["creator"],
                            epubfile.meta["title"],
                            epubfile.id,
-                           os.path.basename(filepath)))
+                           filepath))
     else:
         conn.commit()
         conn.close()
         print "... update done."
-        #  this is an EXPENSIVE function, use at startup or spawn a thread
 
 if __name__ == "__main__":
     updateDB(DBNAME)  # autotest only

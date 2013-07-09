@@ -1,6 +1,8 @@
 import tornado.web
 import time
 import json
+import os
+
 from data.data import opendb, DBNAME
 
 
@@ -22,7 +24,7 @@ class CheckDB(tornado.web.RequestHandler):
         response = database.execute("SELECT * FROM books").fetchall()
         conn.close()
         reply = ["%s, %s, %s, %s" % (resp["isbn"],
-                                     resp["author"], resp["title"], resp["path"])
+                                     resp["author"], resp["title"], os.path.basename(resp["path"]))
                  for resp in response]
         self.set_header("Content-Type", "application/json")
         self.write(json.JSONEncoder().encode(reply))

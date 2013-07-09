@@ -49,7 +49,7 @@ class GetInfo(tornado.web.RequestHandler):
         finally:
             conn.close()
 
-        output = EPUB(os.path.join(EPUB_FILES_PATH, path)).meta
+        output = EPUB(path).meta
         tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
 
     def on_callback(self, output):
@@ -91,7 +91,7 @@ class ShowFileToc(tornado.web.RequestHandler):
         finally:
             conn.close()
 
-        output = EPUB(os.path.join(EPUB_FILES_PATH, path)).contents
+        output = EPUB(path).contents
         tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
 
     def on_callback(self, output):
@@ -125,7 +125,7 @@ class GetFilePart(tornado.web.RequestHandler):
         finally:
             conn.close()
         try:
-            epub = EPUB(os.path.join(EPUB_FILES_PATH, path))
+            epub = EPUB(path)
             part_path = ""
             for i in epub.contents:
                 if part in i.keys():
