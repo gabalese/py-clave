@@ -177,7 +177,7 @@ class GetFilePath(tornado.web.RequestHandler):
             conn.close()
         filepath = ""
         try:
-            epub = EPUB(os.path.join(EPUB_FILES_PATH, path))
+            epub = EPUB(path)
             for i in epub.namelist():
                 if i.endswith(part):
                     filepath = i
