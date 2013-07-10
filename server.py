@@ -5,27 +5,30 @@ import tornado.ioloop
 from threading import Thread
 
 from controllers.TestHandlers import MainHandler, PingHandler, CheckDB
-from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, ShowFileToc, GetFilePart, GetFilePath
+from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, ShowFileToc, GetFilePart, GetFilePath, DownloadPublication
 
-from data.utils import updateDB, DBNAME
+from data.utils import updateDB
 
 
 application = tornado.web.Application([
-    (r"/", MainHandler),
-    #  Test
-    (r"/ping", PingHandler),
-    (r"/checkdb", CheckDB),
-    #  Metadata
-    (r"/catalogue", ListFiles),
-    (r"/book/([^/]+$)", GetInfo),
-    (r"/book/([^/]+)/toc", ShowFileToc),
-    #  Parts
-    (r"/book/([^/]+)/chapter/([^/]+)", GetFilePart),
-    (r"/book/([^/]+)/chapter/([^/]+)/fragment/([^/]+)", GetFilePart),
-    #  Resolution fallback
-    (r"/getpath/([^/]+)/([^/]+)", GetFilePath),
-    (r'/public/([^/]+)', tornado.web.StaticFileHandler, {'path': "./static"})
-], debug=True)
+                                          (r"/", MainHandler),
+                                          #  Test
+                                          (r"/ping", PingHandler),
+                                          (r"/checkdb", CheckDB),
+                                          #  Metadata
+                                          (r"/catalogue", ListFiles),
+                                          (r"/book/([^/]+$)", GetInfo),
+                                          #  Get whole book
+                                          (r"/book/([^/]+)/download", DownloadPublication),
+                                          #  Show toc
+                                          (r"/book/([^/]+)/toc", ShowFileToc),
+                                          #  Parts
+                                          (r"/book/([^/]+)/chapter/([^/]+)", GetFilePart),
+                                          (r"/book/([^/]+)/chapter/([^/]+)/fragment/([^/]+)", GetFilePart),
+                                          #  Resolution fallback
+                                          (r"/getpath/([^/]+)/([^/]+)", GetFilePath),
+                                          (r'/public/([^/]+)', tornado.web.StaticFileHandler, {'path': "./static"})
+                                      ], debug=True)
 
 tornado.web.ErrorHandler = GeneralErrorHandler
 
@@ -45,6 +48,7 @@ if __name__ == "__main__":
         def update_db_new_thread():
             x = Thread(target=updateDB())
             x.start()
+
         update_db_new_thread()
 
         periodic = tornado.ioloop.PeriodicCallback(update_db_new_thread, timeout)

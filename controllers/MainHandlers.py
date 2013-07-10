@@ -1,6 +1,7 @@
 import json
 import xml.dom.minidom as dom
 import re
+import os
 
 from threading import Thread
 import tornado.web
@@ -9,7 +10,7 @@ import tornado.ioloop as IOLoop
 from epub.utils import EPUB
 from epub.utils import listFiles
 
-from data.utils import opendb, DBNAME
+from data.utils import opendb
 
 
 class GeneralErrorHandler(tornado.web.RequestHandler):
@@ -205,3 +206,22 @@ class GetFilePath(tornado.web.RequestHandler):
         self.write(output)
         self.flush()
         self.finish()
+
+
+class DownloadPublication(tornado.web.RequestHandler):
+
+    def get(self, filename):
+        if filename:
+            database, conn = opendb()
+            try:
+                path = database.execute("SELECT path FROM books WHERE isbn = '{0}' ".format(filename)).fetchone()["path"]
+            except TypeError:
+                raise tornado.web.HTTPError(404)
+            finally:
+                conn.close()
+            output = open(path, "r")
+            self.set_header('Content-Type', 'application/zip')
+            self.set_header('Content-Disposition', 'attachment; filename='+os.path.basename(path)+'')
+            self.write(output.read())
+        else:
+            raise tornado.web.HTTPError(404)
