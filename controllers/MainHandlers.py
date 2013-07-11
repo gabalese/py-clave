@@ -1,5 +1,5 @@
 import json
-import xml.dom.minidom as dom
+import xml.etree.ElementTree as ET
 import re
 import os
 
@@ -137,18 +137,18 @@ class GetFilePart(tornado.web.RequestHandler):
             for i in epub.contents:
                 if part in i.keys():
                     part_path = i[part]
-            output = epub.read(part_path)
+            output = epub.read(re.sub(r"#(.*)", "", part_path))  # strip fragment id.
 
             output = re.sub(r'(href|src)="(.*?)"', '\g<1>="/getpath/{0}/\g<2>"'.format(identifier), output)
             output = re.sub(r"(href|src)='(.*?)'", '\g<1>="/getpath/{0}/\g<2>"'.format(identifier), output)
 
             if section:
-                root = dom.parseString(output)
+                root = ET.fromstring(output)
                 section = int(section) - 1
-                name = root.getElementsByTagName("p")[section]
-                output = " ".join([t.nodeValue for t in name.childNodes])
+                name = root.find(".//{http://www.w3.org/1999/xhtml}body")[section]
+                output = " ".join([t for t in list(name.itertext())])
 
-        except (KeyError, Exception):
+        except KeyError:
             output = "Nope."
             tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
             raise tornado.web.HTTPError(404)

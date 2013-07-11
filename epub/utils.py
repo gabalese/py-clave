@@ -8,7 +8,8 @@ from data.utils import DBNAME, opendb
 
 NAMESPACE = {
     "dc": "{http://purl.org/dc/elements/1.1/}",
-    "opf": "{http://www.idpf.org/2007/opf}"
+    "opf": "{http://www.idpf.org/2007/opf}",
+    "ncx": "{http://www.daisy.org/z3986/2005/ncx/}"
 }
 
 
@@ -33,21 +34,29 @@ def listFiles():
 
 class EPUB(ZIP.ZipFile):
     def __init__(self, filename):
-        ZIP.ZipFile.__init__(self, filename, "r", )
-        self.file = filename
-        opf = self.parseOPF(filename)
-        self.meta = {}
-        self.contents = []
-        for i in opf.find("{0}metadata".format(NAMESPACE["opf"])):
-            i.tag = re.sub('\{.*?\}', '', i.tag)
-            if i.tag not in self.meta:
-                self.meta[i.tag] = i.text or i.attrib
-            else:
-                self.meta[i.tag] = [self.meta[i.tag], i.text or i.attrib]
-        for i in opf.find("{0}spine".format(NAMESPACE["opf"])):
-            self.contents.append({i.get("idref"): os.path.dirname(self.parseInfo(filename)["path_to_opf"]) + "/" +
-                                  opf.find(".//*[@id='%s']" % i.get("idref")).get("href")})
-        self.id = self.meta["identifier"] or None
+        try:
+            ZIP.ZipFile.__init__(self, filename, "r", )
+            self.file = filename
+            opf = self.parseOPF(filename)
+            self.meta = {}
+            self.contents = []
+            for i in opf.find("{0}metadata".format(NAMESPACE["opf"])):
+                i.tag = re.sub('\{.*?\}', '', i.tag)
+                if i.tag not in self.meta:
+                    self.meta[i.tag] = i.text or i.attrib
+                else:
+                    self.meta[i.tag] = [self.meta[i.tag], i.text or i.attrib]
+            #for i in opf.find("{0}spine".format(NAMESPACE["opf"])):
+            #    self.contents.append({i.get("idref"): os.path.dirname(self.parseInfo(filename)["path_to_opf"]) + "/" +
+            #                          opf.find(".//*[@id='%s']" % i.get("idref")).get("href")})
+            self.id = self.meta["identifier"] or None
+
+            ncx = self.parseNCX(filename)
+            for i in ncx.iter("{0}navPoint".format(NAMESPACE["ncx"])):
+                self.contents.append({i.get("id"): os.path.dirname(self.parseInfo(filename)["path_to_opf"]) + "/" + i[1].get("src")})
+        except:
+            raise InvalidEpub
+
 
     def parseInfo(self, filename):
         """
