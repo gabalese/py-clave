@@ -13,15 +13,19 @@ def updateDB(db=DBNAME, ext="epub"):
     database, conn = opendb(db)
     for path, dirs, files in os.walk(EPUB_FILES_PATH):
         for singular in files:
-            if singular.endswith(ext):
-                filepath = os.path.join(path, singular)
-                epubfile = epub.utils.EPUB(filepath)
-                database.execute("""
-                    INSERT OR REPLACE INTO books (author, title, isbn, path) VALUES ( '{0}', '{1}', '{2}', '{3}' )
-                """.format(epubfile.meta["creator"],
-                           epubfile.meta["title"],
-                           epubfile.id,
-                           filepath))
+            try:
+                if singular.endswith(ext):
+                    filepath = os.path.join(path, singular)
+                    epubfile = epub.utils.EPUB(filepath)
+                    database.execute("""
+                        INSERT OR REPLACE INTO books (author, title, isbn, path) VALUES ( '{0}', '{1}', '{2}', '{3}' )
+                    """.format(epubfile.meta["creator"],
+                               epubfile.meta["title"],
+                               epubfile.id,
+                               filepath))
+            except Exception, e:
+                print "error: {} - {}".format(singular, e)
+
     else:
         conn.commit()
         conn.close()
