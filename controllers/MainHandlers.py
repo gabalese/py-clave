@@ -143,10 +143,15 @@ class GetFilePart(tornado.web.RequestHandler):
             output = re.sub(r"(href|src)='(.*?)'", '\g<1>="/getpath/{0}/\g<2>"'.format(identifier), output)
 
             if section:
-                root = ET.fromstring(output)
-                section = int(section) - 1
-                name = root.find(".//{http://www.w3.org/1999/xhtml}body")[section]
-                output = " ".join([t for t in list(name.itertext())])
+                try:
+                    root = ET.fromstring(output)
+                    section = int(section) - 1
+                    name = root.find(".//{http://www.w3.org/1999/xhtml}body")[section]
+                    output = " ".join([t for t in list(name.itertext())])
+                except:
+                    output = "Nope."
+                    tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
+                    raise tornado.web.HTTPError(404)
 
         except KeyError:
             output = "Nope."
