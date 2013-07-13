@@ -46,10 +46,13 @@ def generateCatalogRoot():
         entry_language = ET.SubElement(entry, "{http://purl.org/dc/terms}language")
         entry_language.text = epub.meta["language"] or ""
         entry_issued = ET.SubElement(entry, "{http://purl.org/dc/terms}issued")
-        entry_issued.text = epub.meta["date"][0]
+        try:
+            entry_issued.text = epub.meta["date"][0]
+        except KeyError:
+            entry_issued.text = ""
         entry_summary = ET.SubElement(entry, "summary")
         try:
-            entry_summary.text = epub.meta["description"] or ""
+            entry_summary.text = epub.meta["description"]
         except KeyError:
             pass
         link = ET.SubElement(entry, "link", rel="http://opds-spec.org/acquisition",
