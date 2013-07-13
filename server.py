@@ -5,30 +5,35 @@ import tornado.ioloop
 from threading import Thread
 
 from controllers.TestHandlers import MainHandler, PingHandler, CheckDB
-from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, ShowFileToc, GetFilePart, GetFilePath, DownloadPublication
+from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, \
+    ShowFileToc, GetFilePart, GetFilePath, DownloadPublication, OPDSCatalogue
 
 from data.utils import updateDB
 
+from data.opds import generateCatalogRoot
+
 
 application = tornado.web.Application([
-                                          (r"/", MainHandler),
-                                          #  Test
-                                          (r"/ping", PingHandler),
-                                          (r"/checkdb", CheckDB),
-                                          #  Metadata
-                                          (r"/catalogue", ListFiles),
-                                          (r"/book/([^/]+$)", GetInfo),
-                                          #  Get whole book
-                                          (r"/book/([^/]+)/download", DownloadPublication),
-                                          #  Show toc
-                                          (r"/book/([^/]+)/toc", ShowFileToc),
-                                          #  Parts
-                                          (r"/book/([^/]+)/chapter/([^/]+)", GetFilePart),
-                                          (r"/book/([^/]+)/chapter/([^/]+)/fragment/([^/]+)", GetFilePart),
-                                          #  Resolution fallback
-                                          (r"/getpath/([^/]+)/([^/]+)", GetFilePath),
-                                          (r'/public/([^/]+)', tornado.web.StaticFileHandler, {'path': "./static"})
-                                      ], debug=True)
+    (r"/", MainHandler),
+    #  Test
+    (r"/ping", PingHandler),
+    (r"/checkdb", CheckDB),
+    #  OPDS Catalogue
+    (r"/opds-catalog", OPDSCatalogue),
+    #  Metadata
+    (r"/catalogue", ListFiles),
+    (r"/book/([^/]+$)", GetInfo),
+    #  Get whole book
+    (r"/book/([^/]+)/download", DownloadPublication),
+    #  Show toc
+    (r"/book/([^/]+)/toc", ShowFileToc),
+    #  Parts
+    (r"/book/([^/]+)/chapter/([^/]+)", GetFilePart),
+    (r"/book/([^/]+)/chapter/([^/]+)/fragment/([^/]+)", GetFilePart),
+    #  Resolution fallback
+    (r"/getpath/([^/]+)/([^/]+)", GetFilePath),
+    (r'/public/([^/]+)', tornado.web.StaticFileHandler, {'path': "./static"})
+    ], debug=True)
 
 tornado.web.ErrorHandler = GeneralErrorHandler
 

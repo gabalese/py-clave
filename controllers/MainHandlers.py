@@ -11,6 +11,7 @@ from epub.utils import EPUB
 from epub.utils import listFiles
 
 from data.utils import opendb
+from data import opds
 
 
 class GeneralErrorHandler(tornado.web.RequestHandler):
@@ -230,3 +231,11 @@ class DownloadPublication(tornado.web.RequestHandler):
             self.write(output.read())
         else:
             raise tornado.web.HTTPError(404)
+
+
+class OPDSCatalogue(tornado.web.RequestHandler):
+    def get(self):
+        catalogue = opds.generateCatalogRoot()
+        self.set_header("Content-Type", "application/atom+xml")
+        self.write(catalogue)
+

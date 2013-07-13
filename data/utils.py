@@ -1,4 +1,6 @@
 import os
+import time
+
 from data import DBNAME, opendb, EPUB_FILES_PATH
 import epub.utils
 
@@ -20,11 +22,13 @@ def updateDB(db=DBNAME, ext="epub"):
                 except epub.utils.InvalidEpub:
                     continue
                 database.execute("""
-                            INSERT OR REPLACE INTO books (author, title, isbn, path) VALUES ( '{0}', '{1}', '{2}', '{3}' )
+                            INSERT OR REPLACE INTO books (author, title, isbn, path, timest) VALUES ( '{0}', '{1}', '{2}', '{3}', '{4}' )
                         """.format(epubfile.meta["creator"],
                                    epubfile.meta["title"],
                                    epubfile.id,
-                                   filepath))
+                                   filepath,
+                                   time.strftime("%Y-%m-%dT%H:%M:%S")
+                                   ))
 
     else:
         conn.commit()

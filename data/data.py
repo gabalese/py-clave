@@ -52,7 +52,8 @@ if create:
                 author text,
                 title text,
                 isbn text UNIQUE,
-                path text PRIMARY KEY
+                path text PRIMARY KEY,
+                timest timestamp
                 );
     """)
     conn.commit()
