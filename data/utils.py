@@ -21,7 +21,8 @@ def updateDB(db=DBNAME, ext="epub"):
                     epubfile = epub.utils.EPUB(filepath)
                 except epub.utils.InvalidEpub:
                     continue
-                database.execute("""
+                try:
+                    database.execute("""
                             INSERT OR REPLACE INTO books (author, title, isbn, path, timest) VALUES ( '{0}', '{1}', '{2}', '{3}', '{4}' )
                         """.format(epubfile.meta["creator"],
                                    epubfile.meta["title"],
@@ -29,6 +30,9 @@ def updateDB(db=DBNAME, ext="epub"):
                                    filepath,
                                    time.strftime("%Y-%m-%dT%H:%M:%S")
                                    ))
+                except Exception, e:
+                    print e
+                    continue
 
     else:
         conn.commit()

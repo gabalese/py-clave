@@ -46,10 +46,7 @@ class EPUB(ZIP.ZipFile):
                     self.meta[i.tag] = i.text or i.attrib
                 else:
                     self.meta[i.tag] = [self.meta[i.tag], i.text or i.attrib]
-            #for i in opf.find("{0}spine".format(NAMESPACE["opf"])):
-            #    self.contents.append({i.get("idref"): os.path.dirname(self.parseInfo(filename)["path_to_opf"]) + "/" +
-            #                          opf.find(".//*[@id='%s']" % i.get("idref")).get("href")})
-            self.id = self.meta["identifier"] or None
+            self.id = opf.find('.//*[@id="{0}"]'.format(opf.get("unique-identifier"))).text
 
             ncx = self.parseNCX(filename)
             for i in ncx.iter("{0}navPoint".format(NAMESPACE["ncx"])):
