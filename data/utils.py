@@ -27,15 +27,13 @@ def updateDB(db=DBNAME, ext="epub"):
     conn.text_factory = str
 
     path_queue = Queue()
-    dir_queue = Queue()
     
-    WORKERS = 4
+    WORKERS = 2
     for path, dirs, files in os.walk(EPUB_FILES_PATH):
         for singular in files:
             if singular.endswith(ext):
                 filepath = os.path.join(path, singular)
                 path_queue.put(filepath)
-                print filepath
 
     processes = []
     for i in xrange(WORKERS):
