@@ -2,6 +2,7 @@ import json
 import xml.etree.ElementTree as ET
 import re
 import os
+from cStringIO import StringIO
 
 import tornado.web
 from tornado import gen
@@ -57,6 +58,7 @@ class ListFiles(tornado.web.RequestHandler):
         response = yield gen.Task(self.cataloguedump)
         dump = json.JSONEncoder().encode(response)
         self.set_header("Content-Type", "application/json")
+        self.set_header("Charset", "UTF-8")
         self.write(dump)
         self.finish()
 
@@ -112,7 +114,7 @@ class GetFilePart(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(405)
 
         self.set_header("Content-Type", "text/html")
-        self.set_header("Charset","UTF-8")
+        self.set_header("Charset", "UTF-8")
         self.write(output)
         self.finish()
 
@@ -137,11 +139,17 @@ class GetFilePart(tornado.web.RequestHandler):
 
             if section:
                 try:
-                    root = ET.fromstring(output)
+                    from htmlentitydefs import entitydefs
+                    parser = ET.XMLParser()
+                    parser.parser.UseForeignDTD(True)
+                    parser.entity.update(entitydefs)
+                    source = StringIO(output)
+                    root = ET.parse(source, parser)
                     section = int(section) - 1
                     name = root.find(".//{http://www.w3.org/1999/xhtml}body")[section]
                     output = " ".join([t for t in list(name.itertext())])
-                except:
+                except Exception, e:
+                    print e
                     raise tornado.web.HTTPError(404)
 
         except KeyError:

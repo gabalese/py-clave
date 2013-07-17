@@ -2,15 +2,13 @@ import sys
 
 import tornado.web
 import tornado.ioloop
-from threading import Thread
+from multiprocessing import Process
 
 from controllers.TestHandlers import MainHandler, PingHandler, CheckDB
 from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, \
     ShowFileToc, GetFilePart, GetFilePath, DownloadPublication, OPDSCatalogue
 
 from data.utils import updateDB
-
-from data.opds import generateCatalogRoot
 
 
 application = tornado.web.Application([
@@ -51,7 +49,7 @@ if __name__ == "__main__":
 
     try:
         def update_db_new_thread():
-            x = Thread(target=updateDB())
+            x = Process(target=updateDB())
             x.start()
 
         update_db_new_thread()
