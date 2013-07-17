@@ -36,7 +36,6 @@ def updateDB(db=DBNAME, ext="epub"):
             if singular.endswith(ext):
                 filepath = os.path.join(path, singular)
                 path_queue.put(filepath)
-                print filepath
 
     processes = []
     for i in xrange(WORKERS):
