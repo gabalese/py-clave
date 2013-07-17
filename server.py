@@ -1,8 +1,9 @@
 import sys
+import time
 
 import tornado.web
 import tornado.ioloop
-from multiprocessing import Process
+from threading import Thread
 
 from controllers.TestHandlers import MainHandler, PingHandler, CheckDB
 from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, \
@@ -41,18 +42,21 @@ if __name__ == "__main__":
     except IndexError:
         port = 8080
     try:
-        timeout = sys.argv[2]
+        timeout = int(sys.argv[2])
     except IndexError:
-        timeout = 120000
+        timeout = 1000000
     finally:
         application.listen(port)
 
+    def blocking():
+        print "SLEEP!"
+        time.sleep(5)
+        print "Over."
+
     try:
         def update_db_new_thread():
-            x = Process(target=updateDB())
+            x = Thread(target=updateDB)
             x.start()
-
-        update_db_new_thread()
 
         periodic = tornado.ioloop.PeriodicCallback(update_db_new_thread, timeout)
         periodic.start()

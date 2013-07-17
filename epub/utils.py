@@ -3,7 +3,7 @@ import os
 import re
 import xml.etree.ElementTree as ET
 
-from data.utils import DBNAME, opendb
+from data.utils import opendb
 
 
 NAMESPACE = {
