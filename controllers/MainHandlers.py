@@ -3,9 +3,8 @@ import xml.etree.ElementTree as ET
 import re
 import os
 
-from threading import Thread
 import tornado.web
-import tornado.ioloop as IOLoop
+from tornado import gen
 
 from epub.utils import EPUB
 from epub.utils import listFiles
@@ -29,106 +28,99 @@ class GeneralErrorHandler(tornado.web.RequestHandler):
 class GetInfo(tornado.web.RequestHandler):
 
     @tornado.web.asynchronous
+    @gen.engine
     def get(self, filename):
         if filename:
-
-            try:
-                self.thread = Thread(target=self.querydb, args=(self.on_callback, filename,))
-                self.thread.start()
-            except IOError:
-                raise tornado.web.HTTPError(404)
+            response = yield gen.Task(self.querydb, filename)
+            self.write(response)
+            self.finish()
         else:
             raise tornado.web.HTTPError(400)
 
-    def querydb(self, callback, isbn):
+    def querydb(self, isbn, callback):
         database, conn = opendb()
-
         try:
             path = database.execute("SELECT path FROM books WHERE isbn = '{0}' ".format(isbn)).fetchone()["path"]
         except TypeError:
-            tornado.ioloop.IOLoop.instance().add_callback(lambda: callback("Nope."))
             raise tornado.web.HTTPError(404)
         finally:
             conn.close()
-
         output = EPUB(path).meta
-        tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
-
-    def on_callback(self, output):
-        self.write(output)
-        self.flush()
-        self.finish()
+        return callback(output)
 
 
 class ListFiles(tornado.web.RequestHandler):
 
+    @tornado.web.asynchronous
+    @gen.engine
     def get(self):
-        response = listFiles()
+        response = yield gen.Task(self.cataloguedump)
         dump = json.JSONEncoder().encode(response)
         self.set_header("Content-Type", "application/json")
         self.write(dump)
+        self.finish()
+
+    def cataloguedump(self, callback):
+        response = listFiles()
+        return callback(response)
 
 
 class ShowFileToc(tornado.web.RequestHandler):
 
     @tornado.web.asynchronous
+    @gen.engine
     def get(self, identifier):
         if identifier:
             try:
-                self.thread = Thread(target=self.perform, args=(self.on_callback, identifier,))
-                self.thread.start()
+                output = yield gen.Task(self.queryToc, identifier)
+                self.set_header("Content-Type", "application/json")
+                self.write(json.JSONEncoder().encode(output))
+                self.finish()
             except IOError:
                 raise tornado.web.HTTPError(404)
         else:
             raise tornado.web.HTTPError(400)
 
-    def perform(self, callback, identifier):
+    def queryToc(self, identifier, callback):
         database, conn = opendb()
         try:
             path = database.execute("SELECT path FROM books WHERE isbn = '{0}'".format(identifier)).fetchone()["path"]
         except TypeError:
-            output = ""
-            tornado.ioloop.IOLoop.instance().add_callback(lambda: callback("Nope."))
             raise tornado.web.HTTPError(404)
         finally:
             conn.close()
-
         output = EPUB(path).contents
-        tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
-
-    def on_callback(self, output):
-        self.set_header("Content-Type", "application/json")
-        self.write(json.JSONEncoder().encode(output))
-        self.flush()
-        self.finish()
+        return callback(output)
 
 
 class GetFilePart(tornado.web.RequestHandler):
 
     @tornado.web.asynchronous
+    @gen.engine
     def get(self, identifier, part, section=False):
         if identifier and part and not section:
             try:
-                self.thread = Thread(target=self.perform, args=(self.on_callback, identifier, part,))
-                self.thread.start()
+                output = yield gen.Task(self.perform, identifier, part, section=False)
             except IOError:
                 raise tornado.web.HTTPError(404)
         elif identifier and part and section:
             try:
-                self.thread = Thread(target=self.perform, args=(self.on_callback, identifier, part, section,))
-                self.thread.start()
+                output = yield gen.Task(self.perform, identifier, part, section)
             except IOError:
                 raise tornado.web.HTTPError(404)
         else:
             raise tornado.web.HTTPError(405)
 
-    def perform(self, callback, identifier, part, section=False):
+        self.set_header("Content-Type", "text/html")
+        self.set_header("Charset","UTF-8")
+        self.write(output)
+        self.finish()
+
+    def perform(self, identifier, part, section, callback):
         database, conn = opendb()
         try:
             path = database.execute("SELECT path FROM books WHERE isbn = '{0}'".format(identifier)).fetchone()["path"]
         except TypeError:
-            output = ""
-            tornado.ioloop.IOLoop.instance().add_callback(lambda: callback("Nope."))
             raise tornado.web.HTTPError(404)
         finally:
             conn.close()
@@ -150,45 +142,36 @@ class GetFilePart(tornado.web.RequestHandler):
                     name = root.find(".//{http://www.w3.org/1999/xhtml}body")[section]
                     output = " ".join([t for t in list(name.itertext())])
                 except:
-                    output = "Nope."
-                    tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
                     raise tornado.web.HTTPError(404)
 
         except KeyError:
-            output = "Nope."
-            tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
             raise tornado.web.HTTPError(404)
 
-        tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
-
-    def on_callback(self, output):
-        self.set_header("Content-Type", "text/html")
-        self.set_header("Charset","UTF-8")
-        self.write(output)
-        self.flush()
-        self.finish()
+        return callback(output)
 
 
 class GetFilePath(tornado.web.RequestHandler):
 
     @tornado.web.asynchronous
+    @gen.engine
     def get(self, identifier, part):
         if identifier and part:
             try:
-                self.thread = Thread(target=self.perform, args=(self.on_callback, identifier, part,))
-                self.thread.start()
+                output = yield gen.Task(self.perform, identifier, part)
+                self.set_header("Content-Type", "text/html")
+                self.write(output)
+                self.flush()
+                self.finish()
             except IOError:
                 raise tornado.web.HTTPError(404)
         else:
             raise tornado.web.HTTPError(400)
 
-    def perform(self, callback, identifier, part):
+    def perform(self, identifier, part, callback):
         database, conn = opendb()
         try:
             path = database.execute("SELECT path FROM books WHERE isbn = '{0}'".format(identifier)).fetchone()["path"]
         except TypeError:
-            output = ""
-            tornado.ioloop.IOLoop.instance().add_callback(lambda: callback("Nope."))
             raise tornado.web.HTTPError(404)
         finally:
             conn.close()
@@ -203,15 +186,7 @@ class GetFilePath(tornado.web.RequestHandler):
         except KeyError:
             output = "Nope."
             pass
-
-        finally:
-            tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(output))
-
-    def on_callback(self, output):
-        self.set_header("Content-Type", "text/html")
-        self.write(output)
-        self.flush()
-        self.finish()
+        return callback(output)
 
 
 class DownloadPublication(tornado.web.RequestHandler):
@@ -234,8 +209,15 @@ class DownloadPublication(tornado.web.RequestHandler):
 
 
 class OPDSCatalogue(tornado.web.RequestHandler):
+
+    @tornado.web.asynchronous
+    @gen.engine
     def get(self):
-        catalogue = opds.generateCatalogRoot()
+        catalogue = yield gen.Task(self.perform, )
         self.set_header("Content-Type", "application/atom+xml")
         self.write(catalogue)
+        self.finish()
 
+    def perform(self, callback):
+        catalogue = opds.generateCatalogRoot()
+        return callback(catalogue)

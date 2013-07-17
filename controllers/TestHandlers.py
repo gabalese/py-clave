@@ -3,7 +3,7 @@ import time
 import json
 import os
 
-from data.data import opendb, DBNAME
+from data.data import opendb
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -14,7 +14,7 @@ class MainHandler(tornado.web.RequestHandler):
 
 class PingHandler(tornado.web.RequestHandler):
     def get(self):
-        response = {"status": "200 OK", "timestamp": time.time()}
+        response = {"status": "success", "timestamp": time.time()}
         self.write(response)
 
 
