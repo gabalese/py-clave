@@ -10,7 +10,6 @@ import epub.utils
 def insert_path_indb(queue, database, conn):
     while True:
         path = queue.get()
-        print "{} GOT {}".format(current_process(), path)
         try:
             epubfile = epub.utils.EPUB(path)
         except epub.utils.InvalidEpub:
@@ -36,7 +35,6 @@ def updateDB(db=DBNAME, ext="epub"):
             if singular.endswith(ext):
                 filepath = os.path.join(path, singular)
                 path_queue.put(filepath)
-                print filepath
 
     processes = []
     for i in xrange(WORKERS):
