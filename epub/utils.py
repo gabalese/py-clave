@@ -34,26 +34,23 @@ def listFiles():
 
 class EPUB(ZIP.ZipFile):
     def __init__(self, filename):
-        try:
             ZIP.ZipFile.__init__(self, filename, "r", )
             self.file = filename
-            opf = self.parseOPF(filename)
+            self.info = self.parseInfo(filename)
             self.meta = {}
             self.contents = []
-            for i in opf.find("{0}metadata".format(NAMESPACE["opf"])):
-                i.tag = re.sub('\{.*?\}', '', i.tag)
+            ns = re.compile(r'\{.*?\}')
+            meta_tree = self.opf.find("{0}metadata".format(NAMESPACE["opf"]))
+            for i in meta_tree:
+                i.tag = ns.sub('', i.tag)
                 if i.tag not in self.meta:
                     self.meta[i.tag] = i.text or i.attrib
                 else:
                     self.meta[i.tag] = [self.meta[i.tag], i.text or i.attrib]
-            self.id = opf.find('.//*[@id="{0}"]'.format(opf.get("unique-identifier"))).text
-
+            self.id = self.opf.find('.//*[@id="{0}"]'.format(self.opf.get("unique-identifier"))).text
             ncx = self.parseNCX(filename)
             for i in ncx.iter("{0}navPoint".format(NAMESPACE["ncx"])):
-                self.contents.append({i.get("id"): os.path.dirname(self.parseInfo(filename)["path_to_opf"]) + "/" + i[1].get("src")})
-        except:
-            raise InvalidEpub
-
+                self.contents.append({i.get("id"): os.path.dirname(self.info["path_to_opf"]) + "/" + i[1].get("src")})
 
     def parseInfo(self, filename):
         """
@@ -71,13 +68,12 @@ class EPUB(ZIP.ZipFile):
         info["path_to_opf"] = f[0][0].get("full-path")
         root_folder = os.path.dirname(info["path_to_opf"])
 
-        opf = ET.fromstring(self.read(info["path_to_opf"]))
+        self.opf = ET.fromstring(self.read(info["path_to_opf"]))
 
-        toc_id = opf[2].get("toc")
+        toc_id = self.opf[2].get("toc")
         expr = ".//*[@id='{0:s}']".format(toc_id)
-        info["ncx_name"] = opf.find(expr).get("href")
+        info["ncx_name"] = self.opf.find(expr).get("href")
         info["path_to_ncx"] = root_folder + "/" + info["ncx_name"]
-        info.pop("ncx_name")
 
         return info
 
@@ -87,7 +83,10 @@ class EPUB(ZIP.ZipFile):
         :param filename: file path
         :return: opf Element
         """
-        opf = ET.fromstring(self.read(self.parseInfo(filename)["path_to_opf"]))
+        try:
+            opf = ET.fromstring(self.read(self.parseInfo(filename)["path_to_opf"]))
+        except Exception:
+            raise InvalidEpub
         return opf
 
     def parseNCX(self, filename):
@@ -97,6 +96,9 @@ class EPUB(ZIP.ZipFile):
         :param filename: file path
         :return: ncx Element
         """
-        ncx = ET.fromstring(self.read(self.parseInfo(filename)["path_to_ncx"]))
+        try:
+            ncx = ET.fromstring(self.read(self.info["path_to_ncx"]))
+        except Exception:
+            raise InvalidEpub
 
         return ncx

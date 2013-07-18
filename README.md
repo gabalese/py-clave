@@ -11,10 +11,10 @@ On first run the server builds a sqlite3 cache of EPUB files stored in the EPUB_
 
 Exhaustive documentation for the implemented HTTP request may be found on the official [DOCS](http://docs.pyclave.apiary.io/). At the present stage the API is designed to interact with AJAX calls and does not implement any kind of UI. This may change, tho.
 
-Licence
+License
 -------
 
-The source code is provided as-is under the MIT Licence. 
+The source code is provided as-is under the MIT License.
 TL;DR? Do whatever you wish with it, but keep the original attribution.
 
 Contribute

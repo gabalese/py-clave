@@ -1,19 +1,18 @@
 import os
 import time
 
-from multiprocessing import Process, Queue, current_process
+from multiprocessing import Process, Queue
 
 from data import DBNAME, opendb, EPUB_FILES_PATH
 import epub.utils
 
 
 def insert_path_indb(queue, database, conn):
-    while True:
-        path = queue.get()
+    for path in queue:
         try:
             epubfile = epub.utils.EPUB(path)
         except epub.utils.InvalidEpub:
-            pass
+            continue
         inserting_tuple = (unicode(epubfile.meta.get("creator")), unicode(epubfile.meta.get("title")),
                            epubfile.id, path, time.strftime("%Y-%m-%dT%H:%M:%S"))
         database.execute("INSERT OR REPLACE INTO books (author, title, isbn, path, timest) VALUES ( ?, ?, ?, ?, ? )",
@@ -29,7 +28,7 @@ def updateDB(db=DBNAME, ext="epub"):
 
     path_queue = Queue()
     
-    WORKERS = 2
+    WORKERS = 4
     for path, dirs, files in os.walk(EPUB_FILES_PATH):
         for singular in files:
             if singular.endswith(ext):
@@ -38,9 +37,10 @@ def updateDB(db=DBNAME, ext="epub"):
 
     processes = []
     for i in xrange(WORKERS):
-        p = Process(target=insert_path_indb, args=(path_queue, database, conn))
+        p = Process(target=insert_path_indb, args=(iter(path_queue.get, None), database, conn))
         p.start()
         processes.append(p)
+        path_queue.put(None)
 
     for p in processes:
         p.join()

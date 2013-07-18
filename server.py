@@ -1,5 +1,4 @@
 import sys
-import time
 
 import tornado.web
 import tornado.ioloop
@@ -48,15 +47,12 @@ if __name__ == "__main__":
     finally:
         application.listen(port)
 
-    def blocking():
-        print "SLEEP!"
-        time.sleep(5)
-        print "Over."
-
     try:
         def update_db_new_thread():
             x = Thread(target=updateDB)
             x.start()
+
+        update_db_new_thread()
 
         periodic = tornado.ioloop.PeriodicCallback(update_db_new_thread, timeout)
         periodic.start()
