@@ -68,7 +68,7 @@ class EPUB(ZIP.ZipFile):
         info["path_to_opf"] = f[0][0].get("full-path")
         root_folder = os.path.dirname(info["path_to_opf"])
 
-        self.opf = ET.fromstring(self.read(info["path_to_opf"]))
+        self.opf = self.parseOPF(info["path_to_opf"])
 
         toc_id = self.opf[2].get("toc")
         expr = ".//*[@id='{0:s}']".format(toc_id)
@@ -84,7 +84,7 @@ class EPUB(ZIP.ZipFile):
         :return: opf Element
         """
         try:
-            opf = ET.fromstring(self.read(self.parseInfo(filename)["path_to_opf"]))
+            opf = ET.fromstring(self.read(filename))
         except Exception:
             raise InvalidEpub
         return opf
