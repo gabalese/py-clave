@@ -40,11 +40,11 @@ def generateCatalogRoot():
         entry_updated.text = time.strftime("%Y-%m-%dT%H:%M:%S")
         entry_author = ET.SubElement(entry, "author")
         entry_author_name = ET.SubElement(entry_author, "name")
-        entry_author_name.text = item.get("author","")
+        entry_author_name.text = item.get("author", "")
         entry_author_uri = ET.SubElement(entry_author, "uri")
         entry_author_uri.text = ""
         entry_language = ET.SubElement(entry, "{http://purl.org/dc/terms}language")
-        entry_language.text = epub.meta.get("language","")
+        entry_language.text = epub.meta.get("language", "")
         entry_issued = ET.SubElement(entry, "{http://purl.org/dc/terms}issued")
         try:
             entry_issued.text = epub.meta["date"][0]
