@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<h1>Publications available on this server:</h1>
+<ul>
+{% for i in output %}
+<li><a href="/book/{{i}}">{{i}}</a>: {{output[i][0].encode("utf-8")}}, <a href="/book/{{i}}/download">{{output[i][1].encode("utf-8")}}</a></li>
+{% end %}
+</ul>
+</body>
+</html>

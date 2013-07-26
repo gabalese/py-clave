@@ -14,6 +14,13 @@ from data.utils import opendb
 from data import opds
 
 
+def accepted_formats(header):
+    header_list = header.split(",")
+    for i, v in enumerate(header_list):
+        header_list[i] = v.split(";")[0].strip()
+    return header_list
+
+
 class GeneralErrorHandler(tornado.web.RequestHandler):
     def __init__(self, application, request, status_code):
         tornado.web.RequestHandler.__init__(self, application, request)
@@ -33,8 +40,11 @@ class GetInfo(tornado.web.RequestHandler):
     def get(self, filename):
         if filename:
             response = yield gen.Task(self.querydb, filename)
-            self.write(response)
-            self.finish()
+            if "text/html" == accepted_formats(self.request.headers.get("accept"))[0]:
+                self.render("info.html", title=response["title"], id=response["identifier"], meta=response)
+            else:
+                self.write(response)
+                self.finish()
         else:
             raise tornado.web.HTTPError(400)
 
@@ -56,11 +66,14 @@ class ListFiles(tornado.web.RequestHandler):
     @gen.engine
     def get(self):
         response = yield gen.Task(self.cataloguedump)
-        dump = json.JSONEncoder().encode(response)
-        self.set_header("Content-Type", "application/json")
-        self.set_header("Charset", "UTF-8")
-        self.write(dump)
-        self.finish()
+        if "text/html" == accepted_formats(self.request.headers.get("accept"))[0]:
+            self.render("catalogue.html", output=response)
+        else:
+            dump = json.JSONEncoder().encode(response)
+            self.set_header("Content-Type", "application/json")
+            self.set_header("Charset", "UTF-8")
+            self.write(dump)
+            self.finish()
 
     def cataloguedump(self, callback):
         response = listFiles()

@@ -30,8 +30,8 @@ application = tornado.web.Application([
     (r"/book/([^/]+)/chapter/([^/]+)/fragment/([^/]+)", GetFilePart),
     #  Resolution fallback
     (r"/getpath/([^/]+)/([^/]+)", GetFilePath),
-    (r'/public/([^/]+)', tornado.web.StaticFileHandler, {'path': "./static"})
-    ], debug=True)
+    (r'/public/([^/]+)', tornado.web.StaticFileHandler, {'path': "./static"})],
+    debug=True, cookie_secret="ed54ef7408cd7eeeb5a819ddcc633550", login_url="/login", template_path="./template")
 
 tornado.web.ErrorHandler = GeneralErrorHandler
 

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<h1>Metadata for {{ title }} ({{id}})</h1>
+<ul>
+{% for i in meta %}
+    <li>{{i}}: {{meta[i]}}</li>
+{% end %}
+</ul>
+</body>
+</html>
