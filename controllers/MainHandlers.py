@@ -41,9 +41,9 @@ class GetInfo(tornado.web.RequestHandler):
         if filename:
             response = yield gen.Task(self.querydb, filename)
             if "text/html" == accepted_formats(self.request.headers.get("accept"))[0]:
-                self.render("info.html", title=response["title"], id=response["identifier"], meta=response)
+                self.render("info.html", title=response[0]["title"], id=response[0]["identifier"], meta=response[0], contents=response[1])
             else:
-                self.write(response)
+                self.write(json.dumps(response))
                 self.finish()
         else:
             raise tornado.web.HTTPError(400)
@@ -51,12 +51,13 @@ class GetInfo(tornado.web.RequestHandler):
     def querydb(self, isbn, callback):
         database, conn = opendb()
         try:
-            path = database.execute("SELECT path FROM books WHERE isbn = '{0}' ".format(isbn)).fetchone()["path"]
+            path = database.execute("SELECT path FROM books WHERE isbn = ? ", (isbn,)).fetchone()["path"]
         except TypeError:
             raise tornado.web.HTTPError(404)
         finally:
             conn.close()
-        output = EPUB(path).meta
+        epubfile = EPUB(path)
+        output = epubfile.meta, epubfile.contents
         return callback(output)
 
 
@@ -99,7 +100,7 @@ class ShowFileToc(tornado.web.RequestHandler):
     def queryToc(self, identifier, callback):
         database, conn = opendb()
         try:
-            path = database.execute("SELECT path FROM books WHERE isbn = '{0}'".format(identifier)).fetchone()["path"]
+            path = database.execute("SELECT path FROM books WHERE isbn = ?", (identifier, )).fetchone()["path"]
         except TypeError:
             raise tornado.web.HTTPError(404)
         finally:
@@ -134,7 +135,7 @@ class GetFilePart(tornado.web.RequestHandler):
     def perform(self, identifier, part, section, callback):
         database, conn = opendb()
         try:
-            path = database.execute("SELECT path FROM books WHERE isbn = '{0}'".format(identifier)).fetchone()["path"]
+            path = database.execute("SELECT path FROM books WHERE isbn = ?", (identifier, )).fetchone()["path"]
         except TypeError:
             raise tornado.web.HTTPError(404)
         finally:

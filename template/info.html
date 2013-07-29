@@ -5,9 +5,16 @@
 </head>
 <body>
 <h1>Metadata for {{ title }} ({{id}})</h1>
+<h2>Book info:</h2>
 <ul>
 {% for i in meta %}
     <li>{{i}}: {{meta[i]}}</li>
+{% end %}
+</ul>
+<h2>Book contents:</h2>
+<ul>
+{% for i,v in enumerate(contents) %}
+    <li><a href="/book/{{id}}/chapter/{{contents[i].keys()[0]}}">Chapter {{i}}</a></li>
 {% end %}
 </ul>
 </body>

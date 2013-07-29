@@ -72,8 +72,11 @@ class EPUB(ZIP.ZipFile):
 
         toc_id = self.opf[2].get("toc")
         expr = ".//*[@id='{0:s}']".format(toc_id)
-        info["ncx_name"] = self.opf.find(expr).get("href")
-        info["path_to_ncx"] = root_folder + "/" + info["ncx_name"]
+        try:
+            info["ncx_name"] = self.opf.find(expr).get("href")
+            info["path_to_ncx"] = root_folder + "/" + info["ncx_name"]
+        except Exception as e:
+            raise InvalidEpub
 
         return info
 
