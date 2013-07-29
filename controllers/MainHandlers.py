@@ -277,6 +277,8 @@ class GetResource(tornado.web.RequestHandler):
             try:
                 output, mimetype = yield gen.Task(self.perform, identifier, manifest_id)
                 self.set_header("Content-Type", mimetype)
+                output = re.sub(r'(href|src)="(\.\./)?(.*?)"', '\g<1>="/getpath/{0}/\g<3>"'.format(identifier), output)
+                output = re.sub(r"(href|src)='(\.\./)?(.*?)'", '\g<1>="/getpath/{0}/\g<3>"'.format(identifier), output)
                 self.write(output)
                 self.flush()
                 self.finish()
@@ -301,6 +303,8 @@ class GetResource(tornado.web.RequestHandler):
                 if i["id"] == toc_id:
                     filepath = i["href"]
                     mimetype = i["mimetype"]
+            if not mimetype:
+                mimetype = "text/html"
             output = epub.read(os.path.join(os.path.dirname(epub.info["path_to_opf"]), filepath)), mimetype
 
         except KeyError:

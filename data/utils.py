@@ -8,6 +8,7 @@ import epub.utils
 
 insertions = 0
 
+
 def insert_path_indb(queue):
     database, conn = opendb(DBNAME)
     conn.text_factory = str
