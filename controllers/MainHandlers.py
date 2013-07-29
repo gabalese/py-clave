@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 import re
 import os
 from cStringIO import StringIO
+import time
 
 import tornado.web
 from tornado import gen
@@ -40,8 +41,15 @@ class GetInfo(tornado.web.RequestHandler):
     def get(self, filename):
         if filename:
             response = yield gen.Task(self.querydb, filename)
-            if "text/html" == accepted_formats(self.request.headers.get("accept"))[0]:
-                self.render("info.html", title=response[0]["title"], id=response[0]["identifier"], meta=response[0], contents=response[1])
+            if "text/html" in accepted_formats(self.request.headers.get("accept")):
+                self.render("info.html",
+                            title=response[0]["title"],
+                            id=response[0]["identifier"],
+                            meta=response[0],
+                            contents=response[1],
+                            manifest=response[2],
+                            cover=response[3]
+                            )
             else:
                 self.write(json.dumps(response))
                 self.finish()
@@ -57,7 +65,34 @@ class GetInfo(tornado.web.RequestHandler):
         finally:
             conn.close()
         epubfile = EPUB(path)
-        output = epubfile.meta, epubfile.contents
+        output = epubfile.meta, epubfile.contents, epubfile.manifest, epubfile.cover
+        return callback(output)
+
+
+class ShowManifest(tornado.web.RequestHandler):
+
+    @tornado.web.asynchronous
+    @gen.engine
+    def get(self, filename):
+        if filename:
+            response = yield gen.Task(self.querydb, filename)
+            self.set_header("Content-Type", "application/json")
+            self.set_header("Charset", "UTF-8")
+            self.write(json.dumps(response))
+            self.finish()
+        else:
+            raise tornado.web.HTTPError(400)
+
+    def querydb(self, isbn, callback):
+        database, conn = opendb()
+        try:
+            path = database.execute("SELECT path FROM books WHERE isbn = ? ", (isbn,)).fetchone()["path"]
+        except TypeError:
+            raise tornado.web.HTTPError(404)
+        finally:
+            conn.close()
+        epubfile = EPUB(path)
+        output = epubfile.manifest
         return callback(output)
 
 
@@ -67,7 +102,29 @@ class ListFiles(tornado.web.RequestHandler):
     @gen.engine
     def get(self):
         response = yield gen.Task(self.cataloguedump)
-        if "text/html" == accepted_formats(self.request.headers.get("accept"))[0]:
+        if "text/html" in accepted_formats(self.request.headers.get("accept")):
+            self.render("catalogue.html",
+                        output=response
+            )
+        else:
+            dump = json.JSONEncoder().encode(response)
+            self.set_header("Content-Type", "application/json")
+            self.set_header("Charset", "UTF-8")
+            self.write(dump)
+            self.finish()
+
+    def cataloguedump(self, callback):
+        response = listFiles()
+        return callback(response)
+
+
+class ListFiles(tornado.web.RequestHandler):
+
+    @tornado.web.asynchronous
+    @gen.engine
+    def get(self):
+        response = yield gen.Task(self.cataloguedump)
+        if "text/html" in accepted_formats(self.request.headers.get("accept")):
             self.render("catalogue.html", output=response)
         else:
             dump = json.JSONEncoder().encode(response)
@@ -144,12 +201,12 @@ class GetFilePart(tornado.web.RequestHandler):
             epub = EPUB(path)
             part_path = ""
             for i in epub.contents:
-                if part in i.keys():
-                    part_path = i[part]
+                if part == i.get("id"):
+                    part_path = i.get("src")
             output = epub.read(re.sub(r"#(.*)", "", part_path))  # strip fragment id.
 
-            output = re.sub(r'(href|src)="(.*?)"', '\g<1>="/getpath/{0}/\g<2>"'.format(identifier), output)
-            output = re.sub(r"(href|src)='(.*?)'", '\g<1>="/getpath/{0}/\g<2>"'.format(identifier), output)
+            output = re.sub(r'(href|src)="(\.\./)?(.*?)"', '\g<1>="/getpath/{0}/\g<3>"'.format(identifier), output)
+            output = re.sub(r"(href|src)='(\.\./)?(.*?)'", '\g<1>="/getpath/{0}/\g<3>"'.format(identifier), output)
 
             if section:
                 try:
@@ -211,6 +268,47 @@ class GetFilePath(tornado.web.RequestHandler):
         return callback(output)
 
 
+class GetResource(tornado.web.RequestHandler):
+
+    @tornado.web.asynchronous
+    @gen.engine
+    def get(self, identifier, manifest_id):
+        if identifier and manifest_id:
+            try:
+                output, mimetype = yield gen.Task(self.perform, identifier, manifest_id)
+                self.set_header("Content-Type", mimetype)
+                self.write(output)
+                self.flush()
+                self.finish()
+            except IOError:
+                raise tornado.web.HTTPError(404)
+        else:
+            raise tornado.web.HTTPError(400)
+
+    def perform(self, identifier, toc_id, callback):
+        database, conn = opendb()
+        try:
+            path = database.execute("SELECT path FROM books WHERE isbn = '{0}'".format(identifier)).fetchone()["path"]
+        except TypeError:
+            raise tornado.web.HTTPError(404)
+        finally:
+            conn.close()
+        filepath = ""
+        mimetype = ""
+        try:
+            epub = EPUB(path)
+            for i in epub.manifest:
+                if i["id"] == toc_id:
+                    filepath = i["href"]
+                    mimetype = i["mimetype"]
+            output = epub.read(os.path.join(os.path.dirname(epub.info["path_to_opf"]), filepath)), mimetype
+
+        except KeyError:
+            output = "KEY ERROR"
+            pass
+        return callback(output)
+
+
 class DownloadPublication(tornado.web.RequestHandler):
 
     def get(self, filename):
@@ -235,11 +333,19 @@ class OPDSCatalogue(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @gen.engine
     def get(self):
-        catalogue = yield gen.Task(self.perform, )
-        self.set_header("Content-Type", "application/atom+xml")
-        self.write(catalogue)
-        self.finish()
+        if os.path.exists("feed.xml") and (time.time() - os.path.getmtime("feed.xml")) < 200:
+            self.set_header("Content-Type", "application/atom+xml")
+            with open("feed.xml","r") as f:
+                self.write(f.read())
+                self.finish()
+        else:
+            catalogue = yield gen.Task(self.perform, )
+            self.set_header("Content-Type", "application/atom+xml")
+            self.write(catalogue)
+            self.finish()
 
     def perform(self, callback):
         catalogue = opds.generateCatalogRoot()
+        with open("feed.xml", "w") as f:
+            f.write(catalogue)
         return callback(catalogue)

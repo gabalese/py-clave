@@ -6,7 +6,7 @@ from threading import Thread
 
 from controllers.TestHandlers import MainHandler, PingHandler, CheckDB
 from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, \
-    ShowFileToc, GetFilePart, GetFilePath, DownloadPublication, OPDSCatalogue
+    ShowFileToc, GetFilePart, GetFilePath, DownloadPublication, OPDSCatalogue, ShowManifest, GetResource
 
 from data.utils import updateDB
 
@@ -25,11 +25,14 @@ application = tornado.web.Application([
     (r"/book/([^/]+)/download", DownloadPublication),
     #  Show toc
     (r"/book/([^/]+)/toc", ShowFileToc),
+    #  Show manifest
+    (r"/book/([^/]+)/manifest", ShowManifest),
+    (r"/book/([^/]+)/manifest/([^/]+)", GetResource),
     #  Parts
     (r"/book/([^/]+)/chapter/([^/]+)", GetFilePart),
     (r"/book/([^/]+)/chapter/([^/]+)/fragment/([^/]+)", GetFilePart),
     #  Resolution fallback
-    (r"/getpath/([^/]+)/([^/]+)", GetFilePath),
+    (r"/getpath/([^/]+)/(.+)", GetFilePath),
     (r'/public/([^/]+)', tornado.web.StaticFileHandler, {'path': "./static"})],
     debug=True, cookie_secret="ed54ef7408cd7eeeb5a819ddcc633550", login_url="/login", template_path="./template")
 

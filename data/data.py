@@ -2,8 +2,7 @@ import sqlite3
 import os
 
 DBNAME = os.path.join(os.path.dirname(__file__), os.pardir, "base.sql")
-#  EPUB_FILES_PATH = os.path.join(os.path.dirname(__file__), os.pardir, "files")
-EPUB_FILES_PATH = "/Users/gabrielealese/Documents/Lavoro/eBooks"
+EPUB_FILES_PATH = os.path.join(os.path.dirname(__file__), os.pardir, "files")
 
 if not os.path.exists(DBNAME):
     create = True

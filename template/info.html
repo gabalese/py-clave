@@ -1,10 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title></title>
+    <title>{{ title }} info</title>
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+    <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
 </head>
 <body>
 <h1>Metadata for {{ title }} ({{id}})</h1>
+{% if cover != None %}
+<h2>Book cover</h2>
+<img src="/book/{{id}}/manifest/{{cover}}" />
+{% end %}
 <h2>Book info:</h2>
 <ul>
 {% for i in meta %}
@@ -14,7 +20,13 @@
 <h2>Book contents:</h2>
 <ul>
 {% for i,v in enumerate(contents) %}
-    <li><a href="/book/{{id}}/chapter/{{contents[i].keys()[0]}}">Chapter {{i}}</a></li>
+    <li><a href="/book/{{id}}/chapter/{{contents[i].get('id')}}">{{contents[i].get("name")}}</a></li>
+{% end %}
+</ul>
+<h2>Book manifest:</h2>
+<ul>
+{% for i in manifest %}
+<li><a href="/book/{{id}}/manifest/{{i.get('id')}}">{{i.get("id")}}</a>,{{i.get("mimetype")}}</li>
 {% end %}
 </ul>
 </body>

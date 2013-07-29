@@ -51,7 +51,7 @@ def generateCatalogRoot():
         except KeyError:
             entry_issued.text = ""
         entry_summary = ET.SubElement(entry, "summary")
-        entry_summary.text = str(epub.meta.get("description", ""))
+        entry_summary.text = unicode(epub.meta.get("description", ""))
         link = ET.SubElement(entry, "link", rel="http://opds-spec.org/acquisition",
                              href="/book/{0}/download".format(item["isbn"]), type="application/epub+zip")
     output = StringIO.StringIO()

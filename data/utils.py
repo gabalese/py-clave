@@ -14,10 +14,11 @@ def insert_path_indb(queue):
     for path in queue:
         try:
             epubfile = epub.utils.EPUB(path)
-        except epub.utils.InvalidEpub:
+        except epub.utils.InvalidEpub, e:
             print "INVALID! {}".format(path)
             continue
-        except Exception:
+        except Exception, e:
+            print e
             print "INVALID! {}".format(path)
             continue
 

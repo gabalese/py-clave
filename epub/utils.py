@@ -39,7 +39,10 @@ class EPUB(ZIP.ZipFile):
             self.info = self.parseInfo(filename)
             self.meta = {}
             self.contents = []
+            self.manifest = []
             ns = re.compile(r'\{.*?\}')
+            gna = self.opf
+            riprova = gna
             meta_tree = self.opf.find("{0}metadata".format(NAMESPACE["opf"]))
             for i in meta_tree:
                 i.tag = ns.sub('', i.tag)
@@ -47,10 +50,16 @@ class EPUB(ZIP.ZipFile):
                     self.meta[i.tag] = i.text or i.attrib
                 else:
                     self.meta[i.tag] = [self.meta[i.tag], i.text or i.attrib]
+            try:
+                meta2 = self.opf.find('.//*[@name="cover"]')
+                coverid = meta2.get("content")
+                self.cover = coverid
+            except:
+                self.cover = None
+            self.manifest = [{"id": x.get("id"), "href": x.get("href"),"mimetype":x.get("media-type")} for x in self.opf.find("{0}manifest".format(NAMESPACE["opf"]))]
             self.id = self.opf.find('.//*[@id="{0}"]'.format(self.opf.get("unique-identifier"))).text
             ncx = self.parseNCX(filename)
-            for i in ncx.iter("{0}navPoint".format(NAMESPACE["ncx"])):
-                self.contents.append({i.get("id"): os.path.dirname(self.info["path_to_opf"]) + "/" + i[1].get("src")})
+            self.contents = [{"name": i[0][0].text or "None", "src" : os.path.dirname(self.info["path_to_opf"]) + "/" + i[1].get("src"), "id":i.get("id")} for i in ncx.iter("{0}navPoint".format(NAMESPACE["ncx"]))]
 
     def parseInfo(self, filename):
         """
