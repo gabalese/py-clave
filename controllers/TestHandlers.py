@@ -8,8 +8,7 @@ from data.data import opendb
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.set_header("Content-Type", "text/plain")
-        self.render("../README.md")
+        self.redirect("/catalogue")
 
 
 class PingHandler(tornado.web.RequestHandler):

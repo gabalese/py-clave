@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Index</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/public/bootstrap.min.js"></script>
+    <link href="/public/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <div class="page-header">
+  <h1>py-clave <small>demo server</small></h1>
+</div>
+<ul class="list-group">
+    {% for i in output %}
+  <li class="list-group-item"><a href="/book/{{i}}">{{i}}</a>: <em>{{output[i][0].encode("utf-8")}}</em> by <strong>{{output[i][2].encode("utf-8")}}</strong>
+    <a class="btn btn-success btn-small" href="/book/{{i}}/download">Download</a>
+  </li>
+    {% end %}
+</ul>
+</div>
+</body>
+</html>

@@ -25,10 +25,10 @@ def listFiles():
     meta = {}
     database, conn = opendb()
     result = database.execute("""
-                SELECT isbn, title, path FROM books
+                SELECT isbn, title, path, author FROM books
             """)
     for entry in result:
-        meta[entry["isbn"]] = [entry["title"], os.path.basename(entry["path"])]
+        meta[entry["isbn"]] = [entry["title"], os.path.basename(entry["path"]), entry["author"]]
     return meta
 
 
@@ -39,6 +39,7 @@ class EPUB(ZIP.ZipFile):
             self.info = self.parseInfo(filename)
             self.meta = {}
             self.contents = []
+            self.manifest = []
             ns = re.compile(r'\{.*?\}')
             meta_tree = self.opf.find("{0}metadata".format(NAMESPACE["opf"]))
             for i in meta_tree:
@@ -47,10 +48,16 @@ class EPUB(ZIP.ZipFile):
                     self.meta[i.tag] = i.text or i.attrib
                 else:
                     self.meta[i.tag] = [self.meta[i.tag], i.text or i.attrib]
+            try:
+                meta2 = self.opf.find('.//*[@name="cover"]')
+                coverid = meta2.get("content")
+                self.cover = coverid
+            except:
+                self.cover = None
+            self.manifest = [{"id": x.get("id"), "href": x.get("href"),"mimetype":x.get("media-type")} for x in self.opf.find("{0}manifest".format(NAMESPACE["opf"]))]
             self.id = self.opf.find('.//*[@id="{0}"]'.format(self.opf.get("unique-identifier"))).text
             ncx = self.parseNCX(filename)
-            for i in ncx.iter("{0}navPoint".format(NAMESPACE["ncx"])):
-                self.contents.append({i.get("id"): os.path.dirname(self.info["path_to_opf"]) + "/" + i[1].get("src")})
+            self.contents = [{"name": i[0][0].text or "None", "src" : os.path.dirname(self.info["path_to_opf"]) + "/" + i[1].get("src"), "id":i.get("id")} for i in ncx.iter("{0}navPoint".format(NAMESPACE["ncx"]))]
 
     def parseInfo(self, filename):
         """
@@ -72,8 +79,11 @@ class EPUB(ZIP.ZipFile):
 
         toc_id = self.opf[2].get("toc")
         expr = ".//*[@id='{0:s}']".format(toc_id)
-        info["ncx_name"] = self.opf.find(expr).get("href")
-        info["path_to_ncx"] = root_folder + "/" + info["ncx_name"]
+        try:
+            info["ncx_name"] = self.opf.find(expr).get("href")
+            info["path_to_ncx"] = root_folder + "/" + info["ncx_name"]
+        except Exception as e:
+            raise InvalidEpub
 
         return info
 
