@@ -25,10 +25,10 @@ def listFiles():
     meta = {}
     database, conn = opendb()
     result = database.execute("""
-                SELECT isbn, title, path FROM books
+                SELECT isbn, title, path, author FROM books
             """)
     for entry in result:
-        meta[entry["isbn"]] = [entry["title"], os.path.basename(entry["path"])]
+        meta[entry["isbn"]] = [entry["title"], os.path.basename(entry["path"]), entry["author"]]
     return meta
 
 
@@ -41,8 +41,6 @@ class EPUB(ZIP.ZipFile):
             self.contents = []
             self.manifest = []
             ns = re.compile(r'\{.*?\}')
-            gna = self.opf
-            riprova = gna
             meta_tree = self.opf.find("{0}metadata".format(NAMESPACE["opf"]))
             for i in meta_tree:
                 i.tag = ns.sub('', i.tag)

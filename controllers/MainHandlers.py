@@ -44,7 +44,7 @@ class GetInfo(tornado.web.RequestHandler):
             if "text/html" in accepted_formats(self.request.headers.get("accept")):
                 self.render("info.html",
                             title=response[0]["title"],
-                            id=response[0]["identifier"],
+                            id=response[4],
                             meta=response[0],
                             contents=response[1],
                             manifest=response[2],
@@ -65,7 +65,7 @@ class GetInfo(tornado.web.RequestHandler):
         finally:
             conn.close()
         epubfile = EPUB(path)
-        output = epubfile.meta, epubfile.contents, epubfile.manifest, epubfile.cover
+        output = epubfile.meta, epubfile.contents, epubfile.manifest, epubfile.cover, epubfile.id
         return callback(output)
 
 
@@ -106,26 +106,6 @@ class ListFiles(tornado.web.RequestHandler):
             self.render("catalogue.html",
                         output=response
             )
-        else:
-            dump = json.JSONEncoder().encode(response)
-            self.set_header("Content-Type", "application/json")
-            self.set_header("Charset", "UTF-8")
-            self.write(dump)
-            self.finish()
-
-    def cataloguedump(self, callback):
-        response = listFiles()
-        return callback(response)
-
-
-class ListFiles(tornado.web.RequestHandler):
-
-    @tornado.web.asynchronous
-    @gen.engine
-    def get(self):
-        response = yield gen.Task(self.cataloguedump)
-        if "text/html" in accepted_formats(self.request.headers.get("accept")):
-            self.render("catalogue.html", output=response)
         else:
             dump = json.JSONEncoder().encode(response)
             self.set_header("Content-Type", "application/json")
@@ -350,6 +330,7 @@ class OPDSCatalogue(tornado.web.RequestHandler):
 
     def perform(self, callback):
         catalogue = opds.generateCatalogRoot()
+        #  Raw cache. TODO: better cache handling
         with open("feed.xml", "w") as f:
             f.write(catalogue)
         return callback(catalogue)

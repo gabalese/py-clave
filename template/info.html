@@ -2,32 +2,56 @@
 <html>
 <head>
     <title>{{ title }} info</title>
-    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
-    <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/public/bootstrap.min.js"></script>
+    <link href="/public/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<h1>Metadata for {{ title }} ({{id}})</h1>
-{% if cover != None %}
-<h2>Book cover</h2>
-<img src="/book/{{id}}/manifest/{{cover}}" />
-{% end %}
-<h2>Book info:</h2>
-<ul>
-{% for i in meta %}
-    <li>{{i}}: {{meta[i]}}</li>
-{% end %}
-</ul>
-<h2>Book contents:</h2>
-<ul>
-{% for i,v in enumerate(contents) %}
-    <li><a href="/book/{{id}}/chapter/{{contents[i].get('id')}}">{{contents[i].get("name")}}</a></li>
-{% end %}
-</ul>
-<h2>Book manifest:</h2>
-<ul>
-{% for i in manifest %}
-<li><a href="/book/{{id}}/manifest/{{i.get('id')}}">{{i.get("id")}}</a>,{{i.get("mimetype")}}</li>
-{% end %}
-</ul>
+<div class="container">
+    <div class="page-header">
+  <h1>{{title}} <small>{{meta["creator"]}}</small></h1>
+</div>
+    <div class="row">
+                {% if cover != None %}
+        <div class="col-lg-2">
+            <a href="/book/{{id}}/manifest/{{cover}}"><img src="/book/{{id}}/manifest/{{cover}}" class="img-thumbnail" width="200px"/></a>
+        </div>
+        {% end %}
+        <div class="col-lg-10">
+            <ul>
+            {% for i in meta %}
+            <li>{{i}}: {{meta[i]}}</li>
+            {% end %}
+                <a class="btn btn-success btn-large" href="/book/{{id}}/download">Download</a>
+            </ul>
+
+        </div>
+    </div>
+<h2>Book contents</h2>
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="panel panel-info">
+            <div class="panel-heading">Table of Contents</div>
+                <p>This is the book table of contents.</p>
+            <ul class="list-group list-group-flush">
+            {% for i,v in enumerate(contents) %}
+                <li class="list-group-item"><a href="/book/{{id}}/chapter/{{contents[i].get('id')}}">{{contents[i].get("name")}}</a></li>
+            {% end %}
+            </ul>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="panel panel-info">
+            <div class="panel-heading">Manifest</div>
+                <p>This is the book manifest.</p>
+            <ul class="list-group list-group-flush">
+            {% for i in manifest %}
+            <li class="list-group-item"><a href="/book/{{id}}/manifest/{{i.get('id')}}">{{i.get("id")}}</a> <small>({{i.get("mimetype")}})</small></li>
+            {% end %}
+            </ul>
+            </div>
+        </div>
+     </div>
+</div>
 </body>
 </html>

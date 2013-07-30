@@ -1,16 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>General Catalogue</title>
-    <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
-    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+    <title>Index</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/public/bootstrap.min.js"></script>
+    <link href="/public/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<h1>Publications available on this server:</h1>
-<ul>
-{% for i in output %}
-<li><a href="/book/{{i}}">{{i}}</a>: {{output[i][0].encode("utf-8")}}, <a href="/book/{{i}}/download">{{output[i][1].encode("utf-8")}}</a></li>
-{% end %}
+<div class="container">
+    <div class="page-header">
+  <h1>py-clave <small>demo server</small></h1>
+</div>
+<ul class="list-group">
+    {% for i in output %}
+  <li class="list-group-item"><a href="/book/{{i}}">{{i}}</a>: <em>{{output[i][0].encode("utf-8")}}</em> by <strong>{{output[i][2].encode("utf-8")}}</strong>
+    <a class="btn btn-success btn-small" href="/book/{{i}}/download">Download</a>
+  </li>
+    {% end %}
 </ul>
+</div>
 </body>
 </html>
