@@ -344,7 +344,6 @@ class OPDSCatalogue(tornado.web.RequestHandler):
 
 class MainQuery(tornado.web.RequestHandler):
 
-    @tornado.web.asynchronous
     def get(self):
         query = parse_qs(self.request.query)
         if not query:
@@ -359,4 +358,3 @@ class MainQuery(tornado.web.RequestHandler):
             self.render("catalogue.html", output=meta, search=query.values()[0][0])
         else:
             self.write(meta)
-            self.finish()
