@@ -56,7 +56,7 @@ class EPUB(ZIP.ZipFile):
                 self.cover = None
             self.manifest = [{"id": x.get("id"), "href": x.get("href"),"mimetype":x.get("media-type")} for x in self.opf.find("{0}manifest".format(NAMESPACE["opf"]))]
             self.id = self.opf.find('.//*[@id="{0}"]'.format(self.opf.get("unique-identifier"))).text
-            ncx = self.parseNCX(filename)
+            ncx = self.parseNCX()
             self.contents = [{"name": i[0][0].text or "None", "src" : os.path.dirname(self.info["path_to_opf"]) + "/" + i[1].get("src"), "id":i.get("id")} for i in ncx.iter("{0}navPoint".format(NAMESPACE["ncx"]))]
 
     def parseInfo(self, filename):
@@ -82,7 +82,7 @@ class EPUB(ZIP.ZipFile):
         try:
             info["ncx_name"] = self.opf.find(expr).get("href")
             info["path_to_ncx"] = root_folder + "/" + info["ncx_name"]
-        except Exception as e:
+        except Exception:
             raise InvalidEpub
 
         return info
@@ -99,11 +99,10 @@ class EPUB(ZIP.ZipFile):
             raise InvalidEpub
         return opf
 
-    def parseNCX(self, filename):
+    def parseNCX(self):
 
         """
         Parse a NCX index
-        :param filename: file path
         :return: ncx Element
         """
         try:
