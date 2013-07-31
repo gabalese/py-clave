@@ -346,10 +346,10 @@ class MainQuery(tornado.web.RequestHandler):
 
     @tornado.web.asynchronous
     def get(self):
-        connessione = DatabaseConnection()
         query = parse_qs(self.request.query)
-        print query.keys()[0]
-        print query.values()[0][0]
+        if not query:
+            self.redirect("/catalogue")
+        connessione = DatabaseConnection()
         result = connessione.query(query.keys()[0], query.values()[0][0])
         meta = {}
         for entry in result:
