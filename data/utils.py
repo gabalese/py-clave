@@ -6,8 +6,6 @@ from multiprocessing import Process, Queue
 from data import DBNAME, opendb, EPUB_FILES_PATH
 import epub.utils
 
-insertions = 0
-
 
 def insert_path_indb(queue):
     database, conn = opendb(DBNAME)
@@ -27,8 +25,6 @@ def insert_path_indb(queue):
                            epubfile.id, path, time.strftime("%Y-%m-%dT%H:%M:%S"))
         database.execute("INSERT OR REPLACE INTO books (author, title, isbn, path, timest) VALUES ( ?, ?, ?, ?, ? )",
                          inserting_tuple)
-        global insertions
-        insertions += 1
         conn.commit()
 
 
@@ -60,6 +56,5 @@ def updateDB(ext="epub"):
     x = database.execute(r"SELECT Count(*) FROM books").fetchone()
     print "FOUND ", found
     print "INSERTED ", x[0]
-    print "INSERTIONS MADE ", insertions
     conn.close()
     print "Update done in {}".format((time.time()-start_time)*1000.00)

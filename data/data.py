@@ -15,13 +15,14 @@ class DatabaseConnection():
         self.conn = sqlite3.connect(name)
         # noinspection PyPropertyAccess
         self.conn.row_factory = sqlite3.Row
-        self.database = conn.cursor()
+        self.database = self.conn.cursor()
 
     def insert(self):
         pass
 
-    def query(self):
-        pass
+    def query(self, field, query):
+        result = self.database.execute("SELECT * FROM books WHERE {} LIKE '%{}%'".format(field, query)).fetchall()
+        return result
 
     def update(self):
         pass

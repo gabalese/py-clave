@@ -11,6 +11,9 @@
     <div class="page-header">
   <h1>py-clave <small>demo server</small></h1>
 </div>
+    {% if search %}
+    <h3>Search results for <em>{{search}}</em></h3>
+    {% end %}
 <ul class="list-group">
     {% for i in output %}
   <li class="list-group-item"><em>{{output[i][0].encode("utf-8")}}</em> by <strong>{{output[i][2].encode("utf-8")}}</strong>

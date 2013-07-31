@@ -12,7 +12,10 @@ from epub.utils import EPUB
 from epub.utils import listFiles
 
 from data.utils import opendb
+from data.data import DatabaseConnection
 from data import opds
+
+from urlparse import parse_qs
 
 
 def accepted_formats(header):
@@ -51,7 +54,10 @@ class GetInfo(tornado.web.RequestHandler):
                             cover=response[3]
                             )
             else:
-                self.write(json.dumps(response))
+                output = {"id": response[4], "meta": response[0],
+                          "contents": response[1], "manifest": response[2],
+                          "cover": "/book/{0}/manifest/{1}".format(response[4], response[3])}
+                self.write(json.dumps(output))
                 self.finish()
         else:
             raise tornado.web.HTTPError(400)
@@ -104,7 +110,7 @@ class ListFiles(tornado.web.RequestHandler):
         response = yield gen.Task(self.cataloguedump)
         if "text/html" in accepted_formats(self.request.headers.get("accept")):
             self.render("catalogue.html",
-                        output=response
+                        output=response, search=False
             )
         else:
             dump = json.JSONEncoder().encode(response)
@@ -334,3 +340,23 @@ class OPDSCatalogue(tornado.web.RequestHandler):
         with open("feed.xml", "w") as f:
             f.write(catalogue)
         return callback(catalogue)
+
+
+class MainQuery(tornado.web.RequestHandler):
+
+    @tornado.web.asynchronous
+    def get(self):
+        connessione = DatabaseConnection()
+        query = parse_qs(self.request.query)
+        print query.keys()[0]
+        print query.values()[0][0]
+        result = connessione.query(query.keys()[0], query.values()[0][0])
+        meta = {}
+        for entry in result:
+            meta[entry["isbn"]] = [entry["title"], os.path.basename(entry["path"]), entry["author"]]
+        connessione.exit()
+        if "text/html" in accepted_formats(self.request.headers.get("accept")):
+            self.render("catalogue.html", output=meta, search=query.values()[0][0])
+        else:
+            self.write(meta)
+            self.finish()

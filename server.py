@@ -6,7 +6,7 @@ from threading import Thread
 
 from controllers.TestHandlers import MainHandler, PingHandler, CheckDB
 from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, \
-    ShowFileToc, GetFilePart, GetFilePath, DownloadPublication, OPDSCatalogue, ShowManifest, GetResource
+    ShowFileToc, GetFilePart, GetFilePath, DownloadPublication, OPDSCatalogue, ShowManifest, GetResource, MainQuery
 
 from data.utils import updateDB
 
@@ -25,6 +25,8 @@ application = tornado.web.Application([
     (r"/book/([^/]+)/download", DownloadPublication),
     #  Show toc
     (r"/book/([^/]+)/toc", ShowFileToc),
+    #  Query titles
+    (r"/catalogue/search", MainQuery),
     #  Show manifest
     (r"/book/([^/]+)/manifest", ShowManifest),
     (r"/book/([^/]+)/manifest/([^/]+)", GetResource),
