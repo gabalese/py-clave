@@ -17,7 +17,7 @@ def generateCatalogRoot():
                type="application/atom+xml;profile=opds-catalog;kind=navigation"),
              E("link", rel="start", href="/opds-catalog",
                type="application/atom+xml;profile=opds-catalog;kind=navigation"),
-             E("title", "OPDS Catalog Root"),
+             E("title", "py-clave Catalogue"),
              E("updated", "{0}".format(time.strftime("%Y-%m-%dT%H:%M:%SZ"))),
              E("author",
                E("name", "py-clave"),
@@ -55,7 +55,9 @@ def generateCatalogRoot():
         link = ET.SubElement(entry, "link", rel="http://opds-spec.org/acquisition",
                              href="/book/{0}/download".format(item["isbn"]), type="application/epub+zip")
         img = ET.SubElement(entry, "link", rel="http://opds-spec.org/image",
-                             href="/book/{0}/manifest/{1}".format(item["isbn"], epub.cover), type="image/jpg")
+                            href="/book/{0}/manifest/{1}".format(item["isbn"], epub.cover), type="image/jpg")
+        thumb = ET.SubElement(entry, "link", rel="http://opds-spec.org/image/thumbnail",
+                            href="/book/{0}/manifest/{1}".format(item["isbn"], epub.cover), type="image/jpg")
     output = StringIO.StringIO()
     ET.ElementTree(feed).write(output, encoding="UTF-8", xml_declaration=True)
     return output.getvalue()

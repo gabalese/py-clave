@@ -27,6 +27,7 @@ application = tornado.web.Application([
     (r"/book/([^/]+)/toc", ShowFileToc),
     #  Query titles
     (r"/catalogue/search", MainQuery),
+    (r"/catalogue/opds", OPDSCatalogue),
     #  Show manifest
     (r"/book/([^/]+)/manifest", ShowManifest),
     (r"/book/([^/]+)/manifest/([^/]+)", GetResource),
