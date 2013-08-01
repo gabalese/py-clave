@@ -40,7 +40,7 @@ def generateCatalogRoot():
         entry_updated.text = time.strftime("%Y-%m-%dT%H:%M:%S")
         entry_author = ET.SubElement(entry, "author")
         entry_author_name = ET.SubElement(entry_author, "name")
-        entry_author_name.text = item.get["author"]
+        entry_author_name.text = item["author"]
         entry_author_uri = ET.SubElement(entry_author, "uri")
         entry_author_uri.text = ""
         entry_language = ET.SubElement(entry, "{http://purl.org/dc/terms}language")
@@ -54,6 +54,8 @@ def generateCatalogRoot():
         entry_summary.text = epub.meta.get("description", "")
         link = ET.SubElement(entry, "link", rel="http://opds-spec.org/acquisition",
                              href="/book/{0}/download".format(item["isbn"]), type="application/epub+zip")
+        img = ET.SubElement(entry, "link", rel="http://opds-spec.org/image",
+                             href="/book/{0}/manifest/{1}".format(item["isbn"], epub.cover), type="image/jpg")
     output = StringIO.StringIO()
     ET.ElementTree(feed).write(output, encoding="UTF-8", xml_declaration=True)
     return output.getvalue()
