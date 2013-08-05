@@ -33,31 +33,41 @@ def listFiles():
 
 
 class EPUB(ZIP.ZipFile):
-    def __init__(self, filename):
-            ZIP.ZipFile.__init__(self, filename, "r", )
-            self.file = filename
-            self.info = self.parseInfo(filename)
-            self.meta = {}
-            self.contents = []
-            self.manifest = []
-            ns = re.compile(r'\{.*?\}')
-            meta_tree = self.opf.find("{0}metadata".format(NAMESPACE["opf"]))
-            for i in meta_tree:
-                i.tag = ns.sub('', i.tag)
-                if i.tag not in self.meta:
-                    self.meta[i.tag] = i.text or i.attrib
-                else:
-                    self.meta[i.tag] = [self.meta[i.tag], i.text or i.attrib]
-            try:
-                meta2 = self.opf.find('.//*[@name="cover"]')
-                coverid = meta2.get("content")
-                self.cover = coverid
-            except:
-                self.cover = None
-            self.manifest = [{"id": x.get("id"), "href": x.get("href"),"mimetype":x.get("media-type")} for x in self.opf.find("{0}manifest".format(NAMESPACE["opf"]))]
-            self.id = self.opf.find('.//*[@id="{0}"]'.format(self.opf.get("unique-identifier"))).text
-            ncx = self.parseNCX()
-            self.contents = [{"name": i[0][0].text or "None", "src" : os.path.dirname(self.info["path_to_opf"]) + "/" + i[1].get("src"), "id":i.get("id")} for i in ncx.iter("{0}navPoint".format(NAMESPACE["ncx"]))]
+    def __init__(self, filename, mode="r"):
+        if mode == "w":
+            ZIP.ZipFile.__init__(self, filename, "w", )
+            #  Add empty OPF [metadata, manifest, spine, guide]
+            #  and relevant methods.
+            pass
+        else:
+            self.__init__read(filename)
+
+    def __init__read(self, filename):
+        ZIP.ZipFile.__init__(self, filename, "r", )
+        self.file = filename
+        self.info = self.parseInfo(filename)
+        self.meta = {}
+        self.contents = []
+        self.manifest = []
+        ns = re.compile(r'\{.*?\}')
+        meta_tree = self.opf.find("{0}metadata".format(NAMESPACE["opf"]))
+        for i in meta_tree:
+            i.tag = ns.sub('', i.tag)
+            if i.tag not in self.meta:
+                self.meta[i.tag] = i.text or i.attrib
+            else:
+                self.meta[i.tag] = [self.meta[i.tag], i.text or i.attrib]
+        meta2 = self.opf.find('.//*[@name="cover"]')
+        coverid = meta2.get("content", None)
+        self.cover = coverid
+        self.manifest = [{"id": x.get("id"), "href": x.get("href"), "mimetype": x.get("media-type")}
+                         for x in self.opf.find("{0}manifest".format(NAMESPACE["opf"]))]
+        self.id = self.opf.find('.//*[@id="{0}"]'.format(self.opf.get("unique-identifier"))).text
+        ncx = self.parseNCX()
+        self.contents = [{"name": i[0][0].text or "None",
+                          "src": os.path.dirname(self.info["path_to_opf"]) + "/" + i[1].get("src"),
+                          "id":i.get("id")}
+                         for i in ncx.iter("{0}navPoint".format(NAMESPACE["ncx"]))]
 
     def parseInfo(self, filename):
         """
@@ -111,3 +121,26 @@ class EPUB(ZIP.ZipFile):
             raise InvalidEpub
 
         return ncx
+
+    def add_meta(self, **kwargs):
+        """
+
+        :param kwargs:
+        """
+        pass
+
+    def add_element(self, element):
+        """
+        Add an element to OPF
+        :param element: xml.etree.Element
+        """
+        pass
+
+    def add_content(self, filename, mimetype, elementid):
+        """
+        Add relevant content to EPUB archive
+        :param filename: File (path) to be written into epub
+        :param mimetype: mimetype
+        :param elementid: id
+        """
+        pass

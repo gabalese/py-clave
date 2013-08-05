@@ -15,7 +15,7 @@ from data.utils import opendb
 from data.data import DatabaseConnection
 from data import opds
 
-from urlparse import parse_qs
+from urlparse import parse_qs as parse_querystring
 
 
 def accepted_formats(header):
@@ -110,8 +110,7 @@ class ListFiles(tornado.web.RequestHandler):
         response = yield gen.Task(self.cataloguedump)
         if "text/html" in accepted_formats(self.request.headers.get("accept")):
             self.render("catalogue.html",
-                        output=response, search=False
-            )
+                        output=response, search=False)
         else:
             dump = json.JSONEncoder().encode(response)
             self.set_header("Content-Type", "application/json")
@@ -263,8 +262,6 @@ class GetResource(tornado.web.RequestHandler):
             try:
                 output, mimetype = yield gen.Task(self.perform, identifier, manifest_id)
                 self.set_header("Content-Type", mimetype)
-                output = re.sub(r'(href|src)="(\.\./)?(.*?)"', '\g<1>="/getpath/{0}/\g<3>"'.format(identifier), output)
-                output = re.sub(r"(href|src)='(\.\./)?(.*?)'", '\g<1>="/getpath/{0}/\g<3>"'.format(identifier), output)
                 self.write(output)
                 self.flush()
                 self.finish()
@@ -325,7 +322,7 @@ class OPDSCatalogue(tornado.web.RequestHandler):
     def get(self):
         if os.path.exists("feed.xml") and (time.time() - os.path.getmtime("feed.xml")) < 200:
             self.set_header("Content-Type", "application/atom+xml")
-            with open("feed.xml","r") as f:
+            with open("feed.xml", "r") as f:
                 self.write(f.read())
                 self.finish()
         else:
@@ -345,7 +342,7 @@ class OPDSCatalogue(tornado.web.RequestHandler):
 class MainQuery(tornado.web.RequestHandler):
 
     def get(self):
-        query = parse_qs(self.request.query)
+        query = parse_querystring(self.request.query)
         if not query:
             self.redirect("/catalogue")
         connessione = DatabaseConnection()
