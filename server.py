@@ -1,4 +1,5 @@
 import sys
+import os
 
 import tornado.web
 import tornado.ioloop
@@ -37,7 +38,11 @@ application = tornado.web.Application([
     #  Resolution fallback
     (r"/getpath/([^/]+)/(.+)", GetFilePath),
     (r'/public/([^/]+)', tornado.web.StaticFileHandler, {'path': "./static"})],
-    debug=True, cookie_secret="ed54ef7408cd7eeeb5a819ddcc633550", login_url="/login", template_path="./template")
+    debug=True,
+    cookie_secret="ed54ef7408cd7eeeb5a819ddcc633550",
+    login_url="/login",
+    template_path=os.path.join(os.path.dirname(__file__), "template"),
+    static_path=os.path.join(os.path.dirname(__file__), "static"))
 
 tornado.web.ErrorHandler = GeneralErrorHandler
 

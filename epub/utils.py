@@ -58,7 +58,10 @@ class EPUB(ZIP.ZipFile):
             else:
                 self.meta[i.tag] = [self.meta[i.tag], i.text or i.attrib]
         meta2 = self.opf.find('.//*[@name="cover"]')
-        coverid = meta2.get("content", None)
+        try:
+            coverid = meta2.get("content")
+        except AttributeError:
+            coverid = None
         self.cover = coverid
         self.manifest = [{"id": x.get("id"), "href": x.get("href"), "mimetype": x.get("media-type")}
                          for x in self.opf.find("{0}manifest".format(NAMESPACE["opf"]))]
@@ -144,3 +147,32 @@ class EPUB(ZIP.ZipFile):
         :param elementid: id
         """
         pass
+
+
+#  #################
+#  Utility functions,
+#  TODO: REFACTOR
+#  #################
+
+
+def buildNcx():  # function to build an empty NCX tree
+    ncx = ET.Element("ncx")
+    ncx.set("xmlns", "http://www.daisy.org/z3986/2005/ncx/")
+    ncx.set("version", "2005-1")
+
+    head = ET.SubElement(ncx, "head")
+    docTitle = ET.SubElement(ncx, "docTitle")
+    docTitleText = ET.SubElement(docTitle, "text")
+    navMap = ET.SubElement(ncx, "navMap")
+    ncx_tree = ET.ElementTree(ncx)
+
+    return ncx_tree
+
+
+def buildNavPoint():  # builds a navpoint
+    navPoint = ET.Element("navPoint")
+    navLabel = ET.SubElement(navPoint, "navLabel")
+    navLabelText = ET.SubElement(navLabel, "text")
+    content = ET.SubElement(navPoint, "content")
+
+    return navPoint
