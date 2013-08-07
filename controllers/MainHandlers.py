@@ -8,7 +8,7 @@ import time
 import tornado.web
 from tornado import gen
 
-from epub.utils import EPUB
+from epub import EPUB
 from epub.utils import listFiles
 
 from data.utils import opendb
@@ -46,17 +46,16 @@ class GetInfo(tornado.web.RequestHandler):
             response = yield gen.Task(self.querydb, filename)
             if "text/html" in accepted_formats(self.request.headers.get("accept")):
                 self.render("info.html",
-                            title=response[0]["title"],
-                            id=response[4],
-                            meta=response[0],
-                            contents=response[1],
-                            manifest=response[2],
-                            cover=response[3]
+                            title=response["metadata"]["title"],
+                            id=response["id"],
+                            meta=response["metadata"],
+                            contents=response["toc"],
+                            manifest=response["manifest"],
+                            cover=response["cover"]
                             )
             else:
-                output = {"id": response[4], "meta": response[0],
-                          "contents": response[1], "manifest": response[2],
-                          "cover": "/book/{0}/manifest/{1}".format(response[4], response[3])}
+                output = response
+                output["cover"] = "/book/{0}/manifest/{1}".format(response["id"], response["cover"])
                 self.write(json.dumps(output))
                 self.finish()
         else:
@@ -71,7 +70,10 @@ class GetInfo(tornado.web.RequestHandler):
         finally:
             conn.close()
         epubfile = EPUB(path)
-        output = epubfile.meta, epubfile.contents, epubfile.manifest, epubfile.cover, epubfile.id
+        output = epubfile.info
+        output["cover"] = epubfile.cover
+        output["id"] = epubfile.id
+        output["toc"] = epubfile.contents
         return callback(output)
 
 
@@ -98,7 +100,7 @@ class ShowManifest(tornado.web.RequestHandler):
         finally:
             conn.close()
         epubfile = EPUB(path)
-        output = epubfile.manifest
+        output = epubfile.info["manifest"]
         return callback(output)
 
 
@@ -224,7 +226,6 @@ class GetFilePath(tornado.web.RequestHandler):
                 output = yield gen.Task(self.perform, identifier, part)
                 self.set_header("Content-Type", "text/html")
                 self.write(output)
-                self.flush()
                 self.finish()
             except IOError:
                 raise tornado.web.HTTPError(404)
@@ -263,7 +264,6 @@ class GetResource(tornado.web.RequestHandler):
                 output, mimetype = yield gen.Task(self.perform, identifier, manifest_id)
                 self.set_header("Content-Type", mimetype)
                 self.write(output)
-                self.flush()
                 self.finish()
             except IOError:
                 raise tornado.web.HTTPError(404)
@@ -282,13 +282,13 @@ class GetResource(tornado.web.RequestHandler):
         mimetype = ""
         try:
             epub = EPUB(path)
-            for i in epub.manifest:
+            for i in epub.info["manifest"]:
                 if i["id"] == toc_id:
                     filepath = i["href"]
                     mimetype = i["mimetype"]
             if not mimetype:
                 mimetype = "text/html"
-            output = epub.read(os.path.join(os.path.dirname(epub.info["path_to_opf"]), filepath)), mimetype
+            output = epub.read(os.path.join(epub.root_folder, filepath)), mimetype
 
         except KeyError:
             output = "KEY ERROR"

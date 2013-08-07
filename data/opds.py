@@ -1,6 +1,6 @@
 from xml.etree import ElementTree as ET
 from data import opendb
-from epub.utils import EPUB
+from epub import EPUB
 from etbuilder import Builder
 import uuid
 import StringIO
@@ -44,20 +44,20 @@ def generateCatalogRoot():
         entry_author_uri = ET.SubElement(entry_author, "uri")
         entry_author_uri.text = ""
         entry_language = ET.SubElement(entry, "{http://purl.org/dc/terms}language")
-        entry_language.text = epub.meta.get("language", "")
+        entry_language.text = epub.info["metadata"].get("language", "")
         entry_issued = ET.SubElement(entry, "{http://purl.org/dc/terms}issued")
         try:
-            entry_issued.text = epub.meta["date"][0]
+            entry_issued.text = epub.info["metadata"]["date"][0]
         except KeyError:
             entry_issued.text = ""
         entry_summary = ET.SubElement(entry, "summary")
-        entry_summary.text = epub.meta.get("description", "")
+        entry_summary.text = epub.info["metadata"].get("description", "")
         link = ET.SubElement(entry, "link", rel="http://opds-spec.org/acquisition",
                              href="/book/{0}/download".format(item["isbn"]), type="application/epub+zip")
         img = ET.SubElement(entry, "link", rel="http://opds-spec.org/image",
                             href="/book/{0}/manifest/{1}".format(item["isbn"], epub.cover), type="image/jpg")
         thumb = ET.SubElement(entry, "link", rel="http://opds-spec.org/image/thumbnail",
-                            href="/book/{0}/manifest/{1}".format(item["isbn"], epub.cover), type="image/jpg")
+                              href="/book/{0}/manifest/{1}".format(item["isbn"], epub.cover), type="image/jpg")
     output = StringIO.StringIO()
     ET.ElementTree(feed).write(output, encoding="UTF-8", xml_declaration=True)
     return output.getvalue()

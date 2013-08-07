@@ -9,6 +9,8 @@ from controllers.TestHandlers import MainHandler, PingHandler, CheckDB
 from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, \
     ShowFileToc, GetFilePart, GetFilePath, DownloadPublication, OPDSCatalogue, ShowManifest, GetResource, MainQuery
 
+import template.module.ui as UI
+
 from data.utils import updateDB
 
 
@@ -41,6 +43,7 @@ application = tornado.web.Application([
     debug=True,
     cookie_secret="ed54ef7408cd7eeeb5a819ddcc633550",
     login_url="/login",
+    ui_modules={"Hello": UI.Hello},
     template_path=os.path.join(os.path.dirname(__file__), "template"),
     static_path=os.path.join(os.path.dirname(__file__), "static"))
 

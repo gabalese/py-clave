@@ -155,18 +155,17 @@ class EPUB(ZIP.ZipFile):
 #  #################
 
 
-def buildNcx():  # function to build an empty NCX tree
-    ncx = ET.Element("ncx")
-    ncx.set("xmlns", "http://www.daisy.org/z3986/2005/ncx/")
-    ncx.set("version", "2005-1")
+class NCX(object):  # function to build an empty NCX tree
+    def __init__(self):
+        ncx = ET.Element("ncx")
+        ncx.set("xmlns", "http://www.daisy.org/z3986/2005/ncx/")
+        ncx.set("version", "2005-1")
 
-    head = ET.SubElement(ncx, "head")
-    docTitle = ET.SubElement(ncx, "docTitle")
-    docTitleText = ET.SubElement(docTitle, "text")
-    navMap = ET.SubElement(ncx, "navMap")
-    ncx_tree = ET.ElementTree(ncx)
-
-    return ncx_tree
+        head = ET.SubElement(ncx, "head")
+        docTitle = ET.SubElement(ncx, "docTitle")
+        docTitleText = ET.SubElement(docTitle, "text")
+        navMap = ET.SubElement(ncx, "navMap")
+        ncx_tree = ET.ElementTree(ncx)
 
 
 def buildNavPoint():  # builds a navpoint

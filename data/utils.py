@@ -4,7 +4,7 @@ import time
 from multiprocessing import Process, Queue
 
 from data import DBNAME, opendb, EPUB_FILES_PATH
-import epub.utils
+from epub import EPUB, InvalidEpub
 
 
 def insert_path_indb(queue):
@@ -12,8 +12,8 @@ def insert_path_indb(queue):
     conn.text_factory = str
     for path in queue:
         try:
-            epubfile = epub.utils.EPUB(path)
-        except epub.utils.InvalidEpub:
+            epubfile = EPUB(path)
+        except InvalidEpub:
             print "INVALID! {}".format(path)
             continue
         except Exception, e:
@@ -21,7 +21,7 @@ def insert_path_indb(queue):
             print "INVALID! {}".format(path)
             continue
 
-        inserting_tuple = (unicode(epubfile.meta.get("creator")), unicode(epubfile.meta.get("title")),
+        inserting_tuple = (unicode(epubfile.info["metadata"].get("creator")), unicode(epubfile.info["metadata"].get("title")),
                            epubfile.id, path, time.strftime("%Y-%m-%dT%H:%M:%S"))
         database.execute("INSERT OR REPLACE INTO books (author, title, isbn, path, timest) VALUES ( ?, ?, ?, ?, ? )",
                          inserting_tuple)
