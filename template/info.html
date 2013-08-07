@@ -31,6 +31,7 @@
         <div class="col-lg-6">
             <div class="panel panel-info">
             <div class="panel-heading">Table of Contents</div>
+                <small><a href="/book/{{id}}/toc">(See JSON)</a></small>
             <ul class="list-group list-group-flush">
             {% for i,v in enumerate(contents) %}
                 <li class="list-group-item"><a href="/book/{{id}}/chapter/{{contents[i].get('id')}}">{{contents[i].get("name")}}</a></li>
@@ -41,6 +42,7 @@
         <div class="col-lg-6">
             <div class="panel panel-info">
             <div class="panel-heading">Manifest</div>
+                <small><a href="/book/{{id}}/manifest">(See JSON)</a></small>
             <ul class="list-group list-group-flush">
             {% for i in manifest %}
                 <li class="list-group-item"><a href="/book/{{id}}/manifest/{{i.get('id')}}">{{i.get("id")}}</a> <small>({{i.get("mimetype")}})</small></li>

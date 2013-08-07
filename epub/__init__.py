@@ -99,7 +99,10 @@ class EPUB(ZIP.ZipFile):
             self.info["guide"] = None
 
         # Document identifier
-        self.id = self.opf.find('.//*[@id="{0}"]'.format(self.opf.get("unique-identifier"))).text
+        try:
+            self.id = self.opf.find('.//*[@id="{0}"]'.format(self.opf.get("unique-identifier"))).text
+        except AttributeError:
+            raise InvalidEpub
 
         # Get and parse the TOC
         toc_id = self.opf[2].get("toc")
@@ -152,6 +155,7 @@ class EPUB(ZIP.ZipFile):
         self.writestr(self.opf_path, doc.toxml('UTF-8'))
 
     def _init_ncx(self):
+        # TODO
         pass
 
     def _containerxml(self):
@@ -169,10 +173,12 @@ class EPUB(ZIP.ZipFile):
         """
         Add a file to manifest only
         """
+        # TODO
         pass
 
     def addPart(self):
         """
         Add a file to manifest, spine and toc
         """
+        # TODO
         pass

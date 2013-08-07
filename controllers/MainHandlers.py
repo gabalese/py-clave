@@ -25,6 +25,13 @@ def accepted_formats(header):
     return header_list
 
 
+def user_real_ip(request):
+    if "X-Real-IP" in request.headers:
+        return request.headers.get("X-Real-IP")
+    else:
+        return request.remote_ip
+
+
 class GeneralErrorHandler(tornado.web.RequestHandler):
     def __init__(self, application, request, status_code):
         tornado.web.RequestHandler.__init__(self, application, request)
@@ -39,7 +46,7 @@ class GeneralErrorHandler(tornado.web.RequestHandler):
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("hello.html", title="Welcome!", user=self.request.remote_ip)
+        self.render("hello.html", title="Welcome!", user=user_real_ip(self.request))
 
 
 class GetInfo(tornado.web.RequestHandler):
@@ -61,7 +68,7 @@ class GetInfo(tornado.web.RequestHandler):
             else:
                 output = response
                 output["cover"] = "/book/{0}/manifest/{1}".format(response["id"], response["cover"])
-                self.write(json.dumps(output))
+                self.write(json.dumps(output, indent=4))
                 self.finish()
         else:
             raise tornado.web.HTTPError(400)
@@ -91,7 +98,7 @@ class ShowManifest(tornado.web.RequestHandler):
             response = yield gen.Task(self.querydb, filename)
             self.set_header("Content-Type", "application/json")
             self.set_header("Charset", "UTF-8")
-            self.write(json.dumps(response))
+            self.write(json.dumps(response, indent=4))
             self.finish()
         else:
             raise tornado.web.HTTPError(400)
@@ -119,10 +126,9 @@ class ListFiles(tornado.web.RequestHandler):
             self.render("catalogue.html",
                         output=response, search=False)
         else:
-            dump = json.JSONEncoder().encode(response)
             self.set_header("Content-Type", "application/json")
             self.set_header("Charset", "UTF-8")
-            self.write(dump)
+            self.write(json.dumps(response, indent=4))
             self.finish()
 
     def cataloguedump(self, callback):
@@ -139,7 +145,7 @@ class ShowFileToc(tornado.web.RequestHandler):
             try:
                 output = yield gen.Task(self.queryToc, identifier)
                 self.set_header("Content-Type", "application/json")
-                self.write(json.JSONEncoder().encode(output))
+                self.write(json.dumps(output, indent=4))
                 self.finish()
             except IOError:
                 raise tornado.web.HTTPError(404)

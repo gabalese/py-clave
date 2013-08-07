@@ -22,6 +22,7 @@ application = tornado.web.Application([
     (r"/checkdb", CheckDB),
     #  OPDS Catalogue
     (r"/opds-catalog", OPDSCatalogue),
+    (r"/catalogue/opds", OPDSCatalogue),
     #  Metadata
     (r"/catalogue", ListFiles),
     (r"/book/([^/]+$)", GetInfo),
@@ -31,7 +32,6 @@ application = tornado.web.Application([
     (r"/book/([^/]+)/toc", ShowFileToc),
     #  Query titles
     (r"/catalogue/search", MainQuery),
-    (r"/catalogue/opds", OPDSCatalogue),
     #  Show manifest
     (r"/book/([^/]+)/manifest", ShowManifest),
     (r"/book/([^/]+)/manifest/([^/]+)", GetResource),
@@ -39,11 +39,10 @@ application = tornado.web.Application([
     (r"/book/([^/]+)/chapter/([^/]+)", GetFilePart),
     (r"/book/([^/]+)/chapter/([^/]+)/fragment/([^/]+)", GetFilePart),
     #  Resolution fallback
-    (r"/getpath/([^/]+)/(.+)", GetFilePath),
-    (r'/public/([^/]+)', tornado.web.StaticFileHandler, {'path': "./static"})],
+    (r"/getpath/([^/]+)/(.+)", GetFilePath)],
     debug=True,
-    cookie_secret="ed54ef7408cd7eeeb5a819ddcc633550",
-    login_url="/login",
+    cookie_secret="ed54ef7408cd7eeeb5a819ddcc633550",  # TODO
+    login_url="/login",  # TODO
     ui_modules={"Hello": UI.Hello},
     template_path=os.path.join(os.path.dirname(__file__), "template"),
     static_path=os.path.join(os.path.dirname(__file__), "static"))
@@ -52,7 +51,7 @@ tornado.web.ErrorHandler = GeneralErrorHandler
 
 if __name__ == "__main__":
     try:
-        port = sys.argv[1]
+        port = int(sys.argv[1])
     except IndexError:
         port = 8080
     try:
