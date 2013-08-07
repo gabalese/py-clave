@@ -8,8 +8,7 @@ from data.data import opendb
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("hello.html", title="Index")
-        #  self.redirect("/catalogue")
+        self.render("hello.html", title="Welcome!", user=self.request.remote_ip)
 
 
 class PingHandler(tornado.web.RequestHandler):

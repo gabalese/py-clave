@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block header %}
+<h1>Welcome to py-clave staging server</h1>
+{% end %}
+
 {% block content %}
-        {% module Hello("There") %}
+        {% module Hello(user) %}
 {% end %}

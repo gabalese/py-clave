@@ -28,7 +28,7 @@ class EPUB(ZIP.ZipFile):
         if mode == "w":
             ZIP.ZipFile.__init__(self, filename, mode="w")
             self.__init__write(filename)
-        else:
+        else:  # retrocompatibility?
             ZIP.ZipFile.__init__(self, filename, mode="r")
             self.__init__read(filename)
         pass
