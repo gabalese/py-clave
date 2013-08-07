@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% block head %}
+    <title>{{ title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="{{ static_url('bootstrap.min.js') }}"></script>
+    <link href="{{ static_url('bootstrap.min.css') }}" rel="stylesheet">
+    {% end %}
+</head>
+<body>
+    <header class="page-header">
+    {% block header %}
+    {% end %}
+    </header>
+<div class="container">
+    {% block content %}
+    {% end %}
+</div>
+<footer class="container">
+    {% block footer %}
+    {% end %}
+</footer>
+</body>
+</html>
