@@ -5,9 +5,10 @@ import tornado.web
 import tornado.ioloop
 from threading import Thread
 
-from controllers.TestHandlers import MainHandler, PingHandler, CheckDB
+from controllers.TestHandlers import PingHandler, CheckDB
 from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, \
-    ShowFileToc, GetFilePart, GetFilePath, DownloadPublication, OPDSCatalogue, ShowManifest, GetResource, MainQuery
+    ShowFileToc, GetFilePart, GetFilePath, DownloadPublication, OPDSCatalogue, ShowManifest, GetResource, MainQuery, \
+    MainHandler
 
 import template.module.ui as UI
 

@@ -37,6 +37,11 @@ class GeneralErrorHandler(tornado.web.RequestHandler):
         raise tornado.web.HTTPError(400)
 
 
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("hello.html", title="Welcome!", user=self.request.remote_ip)
+
+
 class GetInfo(tornado.web.RequestHandler):
 
     @tornado.web.asynchronous
