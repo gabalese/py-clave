@@ -2,7 +2,7 @@ import zipfile as ZIP
 import os
 import re
 import uuid
-import StringIO
+import datetime
 
 from xml.dom import minidom
 import xml.etree.ElementTree as ET
@@ -21,7 +21,7 @@ class InvalidEpub(Exception):
 
 class EPUB(ZIP.ZipFile):
     """
-    EPUB file representation. Rewrite of EPUB.py 0.51 by exirel
+    EPUB file representation class.
 
     """
     def __init__(self, filename, mode="r"):
@@ -29,9 +29,9 @@ class EPUB(ZIP.ZipFile):
         Global Init Switch
         """
         if mode == "w":
-            filename = StringIO.StringIO()
-            ZIP.ZipFile.__init__(self, filename, mode="w")
-            self.__init__write(filename)
+            self.filename = filename
+            ZIP.ZipFile.__init__(self, self.filename, mode="w")
+            self.__init__write()
         else:  # retrocompatibility?
             ZIP.ZipFile.__init__(self, filename, mode="r")
             self.__init__read(filename)
@@ -110,63 +110,96 @@ class EPUB(ZIP.ZipFile):
         toc_name = self.opf.find(expr).get("href")
         toc_path = self.root_folder + "/" + toc_name
 
-        ncx = ET.fromstring(self.read(toc_path))
+        self.ncx = ET.fromstring(self.read(toc_path))
         self.contents = [{"name": i[0][0].text or "None",
                           "src": self.root_folder + "/" + i[1].get("src"),
                           "id":i.get("id")}
-                         for i in ncx.iter("{0}navPoint".format(NAMESPACE["ncx"]))]
+                         for i in self.ncx.iter("{0}navPoint".format(NAMESPACE["ncx"]))]
 
-    def __init__write(self, filename):
+    def __init__write(self):
         """
         Init for empty EPUB
         """
         self.opf_path = "OEBPS/content.opf"  # Define a default folder for contents
+        self.ncx_path = "OEBPS/toc.ncx"
         self.root_folder = "OEBPS"
         self.uid = '%s' % uuid.uuid4()
 
+        self.info = {"metadata": {},
+                     "manifest": [],
+                     "spine": [],
+                     "guide": []}
+
         self.writestr('mimetype', "application/epub+zip")
         self.writestr('META-INF/container.xml', self._containerxml())
-        self._init_opf()
-        self.__init__read(filename)
+        self.info["metadata"]["creator"] = "py-clave server"
+        self.info["metadata"]["title"] = ""
+        self.info["metadata"]["language"] = ""
+
+        # Problem is: you can't overwrite file contents with python ZipFile
+        # So you must add contents BEFORE finalizing the file,
+        # calling self._safeclose()
+
+    def _safeclose(self):
+        self.writestr(self.opf_path, self._init_opf())
+        self.writestr(self.ncx_path, self._init_ncx())
+        self.__init__read(self.filename)
+        self.close()
 
     def _init_opf(self):
-        doc = minidom.Document()
-        package = doc.createElement('package')
-        package.setAttribute('version', "2.0")
-        package.setAttribute('unique-identifier', "BookId")
-        package.setAttribute('xmlns', "http://www.idpf.org/2007/opf")
-        metadata = doc.createElement('metadata')
-        metadata.setAttribute('xmlns:dc', "http://purl.org/dc/elements/1.1/")
-        metadata.setAttribute('xmlns:opf', "http://www.idpf.org/2007/opf")
-        unique = doc.createElement("dc:identifier")
-        unique.setAttribute("id", "BookId")
-        unique.setAttribute("opf:scheme", "UUID")
-        unique.appendChild(doc.createTextNode(self.uid))
-        metadata.appendChild(unique)
-        manifest = doc.createElement('manifest')
-        spine = doc.createElement('spine')
-        spine.setAttribute("toc", "ncx")
-        guide = doc.createElement('spine')
-        package.appendChild(metadata)
-        package.appendChild(manifest)
-        package.appendChild(spine)
-        package.appendChild(guide)
-        doc.appendChild(package)
-        self.writestr(self.opf_path, doc.toxml('UTF-8'))
+        today = datetime.date.today()
+        opf_tmpl = """<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+                        <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="BookId" version="2.0">
+                          <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+                            <dc:identifier id="BookId" opf:scheme="UUID">{uid}</dc:identifier>
+                            <dc:title>{title}</dc:title>
+                            <dc:language>{lang}</dc:language>
+                            <dc:date opf:event="modification">{date}</dc:date>
+                          </metadata>
+                          <manifest>
+                            <item href="toc.ncx" id="ncx" media-type="application/x-dtbncx+xml" />
+                          </manifest>
+                          <spine toc="ncx">
+                          </spine>
+                          <guide>
+                          </guide>
+                        </package>"""
+        doc = minidom.parseString(opf_tmpl.format(uid=self.uid,
+                                                  date=today,
+                                                  title=self.info["metadata"]["title"],
+                                                  lang=self.info["metadata"]["language"]
+                                                  ))
+        return doc.toxml('UTF-8')
 
     def _init_ncx(self):
-        # TODO
-        pass
+        ncx_tmpl = """<?xml version="1.0" encoding="utf-8"?>
+                        <!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN"
+                           "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
+                        <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+                        <head>
+                           <meta name="dtb:uid" content="{uid}" />
+                           <meta name="dtb:depth" content="0" />
+                           <meta name="dtb:totalPageCount" content="0" />
+                           <meta name="dtb:maxPageNumber" content="0" />
+                        </head>
+                        <docTitle>
+                           <text>{title}</text>
+                        </docTitle>
+                        <navMap>
+                        </navMap>
+                        </ncx>"""
+        ncx = minidom.parseString(ncx_tmpl.format(uid=self.uid, title="Default"))
+        return ncx.toxml('UTF-8')
 
     def _containerxml(self):
         template = """<?xml version="1.0" encoding="UTF-8"?>
-    <container version="1.0"
-               xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
-        <rootfiles>
-             <rootfile full-path="%s"
-                       media-type="application/oebps-package+xml"/>
-        </rootfiles>
-    </container>"""
+                    <container version="1.0"
+                               xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+                        <rootfiles>
+                             <rootfile full-path="%s"
+                                       media-type="application/oebps-package+xml"/>
+                        </rootfiles>
+                    </container>"""
         return template % self.opf_path
 
     def addItem(self):
