@@ -118,7 +118,7 @@ class EPUB(ZIP.ZipFile):
 
     def __init__write(self):
         """
-        Init for empty EPUB
+        Init and empty EPUB
         """
         self.opf_path = "OEBPS/content.opf"  # Define a default folder for contents
         self.ncx_path = "OEBPS/toc.ncx"
@@ -137,14 +137,28 @@ class EPUB(ZIP.ZipFile):
         self.info["metadata"]["language"] = ""
 
         # Problem is: you can't overwrite file contents with python ZipFile
-        # So you must add contents BEFORE finalizing the file,
-        # calling self._safeclose()
+        # so you must add contents BEFORE finalizing the file
+        # calling close() method.
+
+        self.opf = ET.fromstring(self._init_opf())  # opf property is always a ElementTree
+        self.ncx = ET.fromstring(self._init_ncx())  # so is ncx. Consistent with self.(opf|ncx) built by __init_read()
+
+    def close(self):
+        if self.fp is None:  # Check file status
+            return
+        if self.mode == "r":
+            ZIP.ZipFile.close(self)
+            return
+        try:
+            self._safeclose()
+            ZIP.ZipFile.close(self)
+        except RuntimeError:  # zipfile.__del__ calls close(), ignore
+            return
 
     def _safeclose(self):
-        self.writestr(self.opf_path, self._init_opf())
-        self.writestr(self.ncx_path, self._init_ncx())
-        self.__init__read(self.filename)
-        self.close()
+        self.writestr(self.opf_path, ET.tostring(self.opf, encoding="UTF-8"))
+        self.writestr(self.ncx_path, ET.tostring(self.ncx, encoding="UTF-8"))
+        self.__init__read(self.filename)  # We may need info dict of a closed EPUB
 
     def _init_opf(self):
         today = datetime.date.today()
@@ -202,16 +216,18 @@ class EPUB(ZIP.ZipFile):
                     </container>"""
         return template % self.opf_path
 
-    def addItem(self):
+    def addItem(self, fileObject, href, mediatype):
         """
         Add a file to manifest only
         """
-        # TODO
-        pass
+        assert self.mode == "w", "%s is not writable" % self
+        element = ET.Element("item", attrib={"id": str(uuid.uuid4())[:5], "href": href, "media-type": mediatype})
+        self.write(fileObject, os.path.join(self.root_folder, element.attrib["href"]))
+        self.opf[1].append(element)
 
-    def addPart(self):
+    def addPart(self, fileObject, href, mediatype, position=None):
         """
         Add a file to manifest, spine and toc
+        :param element: ElementTree.Element
         """
-        # TODO
-        pass
+        assert self.mode == "w", "%s is not writable" % self
