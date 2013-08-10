@@ -1,17 +1,5 @@
 import os
-
 from data.utils import opendb
-
-
-NAMESPACE = {
-    "dc": "{http://purl.org/dc/elements/1.1/}",
-    "opf": "{http://www.idpf.org/2007/opf}",
-    "ncx": "{http://www.daisy.org/z3986/2005/ncx/}"
-}
-
-
-class InvalidEpub(Exception):
-    pass
 
 
 def listFiles():
