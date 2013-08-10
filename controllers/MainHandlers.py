@@ -2,8 +2,9 @@ import json
 import xml.etree.ElementTree as ET
 import re
 import os
-from cStringIO import StringIO
 import time
+from StringIO import StringIO
+from urlparse import parse_qs as parse_querystring
 
 import tornado.web
 from tornado import gen
@@ -15,10 +16,14 @@ from data.utils import opendb
 from data.data import DatabaseConnection
 from data import opds
 
-from urlparse import parse_qs as parse_querystring
-
 
 def accepted_formats(header):
+    """
+    Returns a list of accepted formats in HTTP request header
+
+    :type header: tornado.web.RequestHandler.request.headers
+    :param header: HTTP Request Header
+    """
     header_list = header.split(",")
     for i, v in enumerate(header_list):
         header_list[i] = v.split(";")[0].strip()
@@ -26,6 +31,13 @@ def accepted_formats(header):
 
 
 def user_real_ip(request):
+    """
+    Tornado is meant to be deployed behind a proxy. The official documentation says
+    remote_ip is to check if a X-Real-IP exists, but apparently that's not the case.
+
+    :type request: tornado.web.RequestHandler.request
+    :param request: HTTP Request
+    """
     if "X-Real-IP" in request.headers:
         return request.headers.get("X-Real-IP")
     else:
@@ -344,7 +356,7 @@ class OPDSCatalogue(tornado.web.RequestHandler):
 
     def perform(self, callback):
         catalogue = opds.generateCatalogRoot()
-        #  Raw cache. TODO: better cache handling
+        # Raw cache. TODO: better cache handling
         with open("feed.xml", "w") as f:
             f.write(catalogue)
         return callback(catalogue)
