@@ -65,3 +65,9 @@ def generateCatalogRoot():
 
 def generateAcquisitionFeed():
     pass  # TODO: implement
+
+
+def updateCatalog():
+    catalogue = generateCatalogRoot()
+    with open("feed.xml", "w") as f:
+        f.write(catalogue)

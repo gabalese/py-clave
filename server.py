@@ -10,6 +10,8 @@ from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, \
     ShowFileToc, GetFilePart, GetFilePath, DownloadPublication, OPDSCatalogue, ShowManifest, GetResource, MainQuery, \
     MainHandler
 
+import data.opds
+
 import template.module.ui as UI
 
 from data.utils import updateDB
@@ -62,8 +64,18 @@ if __name__ == "__main__":
         application.listen(port)
 
     try:
+
+        def new_thread_wrapper(func):
+            x = Thread(target=func)
+            x.start()
+
         def update_db_new_thread():
             x = Thread(target=updateDB)
+            x.start()
+
+        def update_xml_feed():
+            print "OK..."
+            x = Thread(target=data.opds.updateCatalog)
             x.start()
 
         update_db_new_thread()
@@ -71,7 +83,11 @@ if __name__ == "__main__":
         periodic = tornado.ioloop.PeriodicCallback(update_db_new_thread, timeout)
         periodic.start()
 
+        update_xml = tornado.ioloop.PeriodicCallback(update_xml_feed, 300000)
+        update_xml.start()
+
         tornado.ioloop.IOLoop.instance().start()
+
     except KeyboardInterrupt:
         tornado.ioloop.IOLoop.instance().close()
 

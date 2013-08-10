@@ -58,7 +58,7 @@ class GeneralErrorHandler(tornado.web.RequestHandler):
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("hello.html", title="Welcome!", user=user_real_ip(self.request))
+        self.render("hello.html", title="Welcome!", user=user_real_ip(self.request), host=self.request.headers.get("Host"))
 
 
 class GetInfo(tornado.web.RequestHandler):
