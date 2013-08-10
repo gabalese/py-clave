@@ -37,11 +37,13 @@ class EPUB(ZIP.ZipFile):
         :param mode: "w" or "r", mode to init the zipfile
         """
         if mode == "w":
-            assert not os.path.exists(filename), "Can't overwrite existing file: %s" % filename
+            if not isinstance(filename, StringIO):
+                assert not os.path.exists(filename), "Can't overwrite existing file: %s" % filename
             self.filename = filename
             ZIP.ZipFile.__init__(self, self.filename, mode="w")
             self.__init__write()
-        if mode == "a":
+        elif mode == "a":
+            self.filename = filename
             ZIP.ZipFile.__init__(self, filename, mode="a")
             self.__init__read(filename)
         else:  # retrocompatibility?
@@ -55,6 +57,7 @@ class EPUB(ZIP.ZipFile):
         :type filename: str or StringIO
         :param filename: File to be processed
         """
+        self.filename = filename
         try:
             # Read the container
             f = self.read("META-INF/container.xml")
@@ -159,6 +162,9 @@ class EPUB(ZIP.ZipFile):
         self.opf = ET.fromstring(self._init_opf())  # opf property is always a ElementTree
         self.ncx = ET.fromstring(self._init_ncx())  # so is ncx. Consistent with self.(opf|ncx) built by __init_read()
 
+        self.writestr(self.opf_path, ET.tostring(self.opf, encoding="UTF-8"))  # temporary opf & ncx
+        self.writestr(self.ncx_path, ET.tostring(self.ncx, encoding="UTF-8"))  # will be re-init on close()
+
     def close(self):
         if self.fp is None:     # Check file status
             return
@@ -181,7 +187,7 @@ class EPUB(ZIP.ZipFile):
         Preliminary operations before closing an EPUB
         Writes the empty or modified opf-ncx files before closing the zipfile
         """
-        if self.mode == "a":  # no need to do that if dealing with mode=w files
+        if self.mode != "r":
             self._delete(self.opf_path, self.ncx_path)  # see following horrible hack:
                                                         # zipfile cannot manage overwriting on the archive
                                                         # this basically RECREATES the epub from scratch
@@ -303,7 +309,25 @@ class EPUB(ZIP.ZipFile):
         # TODO
 
     def writetodisk(self, filename):
+        """
+        Writes the in-memory archive to disk
+
+        :type filename: str
+        :param filename: name of the file to be writte
+        """
+        if self.mode == "r":
+            # The inferface should be consistent
+            new_zip = ZIP.ZipFile(filename, 'w')
+            for item in self.infolist():
+                new_zip.writestr(item.filename, self.read(item.filename))
+            new_zip.close()
+            return
+            # this is a bad habit
         f = open(filename, "w")
-        self.filename.seek(0)
+        try:
+            self.filename.seek(0)
+        except AttributeError:  # file must be closed first
+            self.close()
+            self.filename.seek(0)
         f.write(self.filename.read())
         f.close()
