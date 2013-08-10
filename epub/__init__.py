@@ -7,6 +7,9 @@ import datetime
 from xml.dom import minidom
 import xml.etree.ElementTree as ET
 
+import shutil
+import tempfile
+
 
 NAMESPACE = {
     "dc": "{http://purl.org/dc/elements/1.1/}",
@@ -29,9 +32,13 @@ class EPUB(ZIP.ZipFile):
         Global Init Switch
         """
         if mode == "w":
+            assert not os.path.exists(filename), "Can't overwrite existing file: %s" % filename
             self.filename = filename
             ZIP.ZipFile.__init__(self, self.filename, mode="w")
             self.__init__write()
+        if mode == "a":
+            ZIP.ZipFile.__init__(self, filename, mode="a")
+            self.__init__read(filename)
         else:  # retrocompatibility?
             ZIP.ZipFile.__init__(self, filename, mode="r")
             self.__init__read(filename)
@@ -49,7 +56,7 @@ class EPUB(ZIP.ZipFile):
             raise InvalidEpub
         try:
             # There MUST be a full path attribute on first grandchild...
-            opf_path = ET.fromstring(f)[0][0].get("full-path")
+            self.opf_path = ET.fromstring(f)[0][0].get("full-path")
         except IndexError:
             #  ...else the file is invalid.
             print "The %s file is not a valid OCF." % str(filename)
@@ -61,18 +68,18 @@ class EPUB(ZIP.ZipFile):
                      "spine": [],
                      "guide": []}
 
-        self.root_folder = os.path.dirname(opf_path)   # Used to compose absolute paths for reading in zip archive
-        self.opf = ET.fromstring(self.read(opf_path))  # OPF tree
+        self.root_folder = os.path.dirname(self.opf_path)   # Used to compose absolute paths for reading in zip archive
+        self.opf = ET.fromstring(self.read(self.opf_path))  # OPF tree
 
         ns = re.compile(r'\{.*?\}')  # RE to strip {namespace} mess
 
         # Iterate over <metadata> section, fill EPUB.info["metadata"] dictionary
         for i in self.opf.find("{0}metadata".format(NAMESPACE["opf"])):
-            i.tag = ns.sub('', i.tag)
-            if i.tag not in self.info["metadata"]:
-                self.info["metadata"][i.tag] = i.text or i.attrib
+            tag = ns.sub('', i.tag)
+            if tag not in self.info["metadata"]:
+                self.info["metadata"][tag] = i.text or i.attrib
             else:
-                self.info["metadata"][i.tag] = [self.info["metadata"][i.tag], i.text or i.attrib]
+                self.info["metadata"][tag] = [self.info["metadata"][tag], i.text or i.attrib]
 
         # Get id of the cover in <meta name="cover" />
         try:
@@ -108,9 +115,9 @@ class EPUB(ZIP.ZipFile):
         toc_id = self.opf[2].get("toc")
         expr = ".//*[@id='{0:s}']".format(toc_id)
         toc_name = self.opf.find(expr).get("href")
-        toc_path = self.root_folder + "/" + toc_name
+        self.ncx_path = self.root_folder + "/" + toc_name
 
-        self.ncx = ET.fromstring(self.read(toc_path))
+        self.ncx = ET.fromstring(self.read(self.ncx_path))
         self.contents = [{"name": i[0][0].text or "None",
                           "src": self.root_folder + "/" + i[1].get("src"),
                           "id":i.get("id")}
@@ -143,6 +150,9 @@ class EPUB(ZIP.ZipFile):
         self.opf = ET.fromstring(self._init_opf())  # opf property is always a ElementTree
         self.ncx = ET.fromstring(self._init_ncx())  # so is ncx. Consistent with self.(opf|ncx) built by __init_read()
 
+    def __init__append(self):
+        pass
+
     def close(self):
         if self.fp is None:  # Check file status
             return
@@ -156,9 +166,14 @@ class EPUB(ZIP.ZipFile):
             return
 
     def _safeclose(self):
+        if self.mode == "a":  # no need to do that if dealing with mode=w files
+            self._delete(self.opf_path, self.ncx_path)  # see following horrible hack:
+                                                        # zipfile cannot manage overwriting on the archive
+                                                        # this basically RECREATES the epub from scratch
+                                                        # and is sure slow as hell
         self.writestr(self.opf_path, ET.tostring(self.opf, encoding="UTF-8"))
         self.writestr(self.ncx_path, ET.tostring(self.ncx, encoding="UTF-8"))
-        self.__init__read(self.filename)  # We may need info dict of a closed EPUB
+        self.__init__read(self.filename)  # We still need info dict of a closed EPUB
 
     def _init_opf(self):
         today = datetime.date.today()
@@ -216,13 +231,27 @@ class EPUB(ZIP.ZipFile):
                     </container>"""
         return template % self.opf_path
 
+    def _delete(self, *paths):  # horrible hack
+        # See https://bitbucket.org/exirel/epub/pull-request/4/add-a-epubfiledelete-method-to-avoid/diff
+        # and http://stackoverflow.com/questions/4653768/overwriting-file-in-ziparchive/4653863#4653863
+        # Looks like a recipe for failure, btw
+        # TODO: use file-like obj rather than a real temporary file
+        with tempfile.NamedTemporaryFile('rb', delete=False) as temp:
+            with ZIP.ZipFile(temp.name, 'w') as new_zip:
+                for item in self.infolist():
+                    if item.filename not in paths:
+                        new_zip.writestr(item, self.read(item.filename))
+            ZIP.ZipFile.close(self)
+            shutil.move(temp.name, self.filename)
+            ZIP.ZipFile.__init__(self, self.filename, self.mode)
+
     def addItem(self, fileObject, href, mediatype):
         """
         Add a file to manifest only
         """
-        assert self.mode == "w", "%s is not writable" % self
+        assert self.mode != "r", "%s is not writable" % self
         element = ET.Element("item", attrib={"id": str(uuid.uuid4())[:5], "href": href, "media-type": mediatype})
-        self.write(fileObject, os.path.join(self.root_folder, element.attrib["href"]))
+        self.writestr(os.path.join(self.root_folder, element.attrib["href"]), fileObject.getvalue())
         self.opf[1].append(element)
 
     def addPart(self, fileObject, href, mediatype, position=None):
