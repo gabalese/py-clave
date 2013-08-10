@@ -2,14 +2,14 @@ import zipfile as ZIP
 import os
 import re
 import uuid
+from StringIO import StringIO
 import datetime
 
 from xml.dom import minidom
 import xml.etree.ElementTree as ET
 
-import shutil
-import tempfile
-
+TMP = {"opf": None, "ncx": None}
+FLO = None
 
 NAMESPACE = {
     "dc": "{http://purl.org/dc/elements/1.1/}",
@@ -160,6 +160,9 @@ class EPUB(ZIP.ZipFile):
             ZIP.ZipFile.close(self)
             return
         try:
+            global TMP
+            TMP["opf"] = self.opf
+            TMP["ncx"] = self.ncx
             self._safeclose()
             ZIP.ZipFile.close(self)
         except RuntimeError:  # zipfile.__del__ calls close(), ignore
@@ -171,27 +174,30 @@ class EPUB(ZIP.ZipFile):
                                                         # zipfile cannot manage overwriting on the archive
                                                         # this basically RECREATES the epub from scratch
                                                         # and is sure slow as hell
+            self.opf = TMP["opf"]
+            self.ncx = TMP["ncx"]  # terribile, but... any better idea?
+
         self.writestr(self.opf_path, ET.tostring(self.opf, encoding="UTF-8"))
         self.writestr(self.ncx_path, ET.tostring(self.ncx, encoding="UTF-8"))
-        self.__init__read(self.filename)  # We still need info dict of a closed EPUB
+        self.__init__read(FLO)  # We still need info dict of a closed EPUB
 
     def _init_opf(self):
         today = datetime.date.today()
         opf_tmpl = """<?xml version="1.0" encoding="utf-8" standalone="yes"?>
                         <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="BookId" version="2.0">
-                          <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+                        <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
                             <dc:identifier id="BookId" opf:scheme="UUID">{uid}</dc:identifier>
                             <dc:title>{title}</dc:title>
                             <dc:language>{lang}</dc:language>
                             <dc:date opf:event="modification">{date}</dc:date>
-                          </metadata>
-                          <manifest>
+                        </metadata>
+                        <manifest>
                             <item href="toc.ncx" id="ncx" media-type="application/x-dtbncx+xml" />
-                          </manifest>
-                          <spine toc="ncx">
-                          </spine>
-                          <guide>
-                          </guide>
+                        </manifest>
+                        <spine toc="ncx">
+                        </spine>
+                        <guide>
+                        </guide>
                         </package>"""
         doc = minidom.parseString(opf_tmpl.format(uid=self.uid,
                                                   date=today,
@@ -232,20 +238,17 @@ class EPUB(ZIP.ZipFile):
         return template % self.opf_path
 
     def _delete(self, *paths):  # horrible hack
-        # See https://bitbucket.org/exirel/epub/pull-request/4/add-a-epubfiledelete-method-to-avoid/diff
-        # and http://stackoverflow.com/questions/4653768/overwriting-file-in-ziparchive/4653863#4653863
-        # Looks like a recipe for failure, btw
-        # TODO: use file-like obj rather than a real temporary file
-        with tempfile.NamedTemporaryFile('rb', delete=False) as temp:
-            with ZIP.ZipFile(temp.name, 'w') as new_zip:
-                for item in self.infolist():
-                    if item.filename not in paths:
-                        new_zip.writestr(item, self.read(item.filename))
-            ZIP.ZipFile.close(self)
-            shutil.move(temp.name, self.filename)
-            ZIP.ZipFile.__init__(self, self.filename, self.mode)
+        global FLO  # this is obviously wrong: any better idea?
+        FLO = StringIO()
+        new_zip = ZIP.ZipFile(FLO, 'w')
+        for item in self.infolist():
+            if item.filename not in paths:
+                new_zip.writestr(item.filename, self.read(item.filename))
+        ZIP.ZipFile.close(self)     # Don't know why
+        new_zip.close()             # but it works, don't ever touch
+        ZIP.ZipFile.__init__(self, FLO, mode="a")
 
-    def addItem(self, fileObject, href, mediatype):
+    def additem(self, fileObject, href, mediatype):
         """
         Add a file to manifest only
         """
@@ -254,9 +257,15 @@ class EPUB(ZIP.ZipFile):
         self.writestr(os.path.join(self.root_folder, element.attrib["href"]), fileObject.getvalue())
         self.opf[1].append(element)
 
-    def addPart(self, fileObject, href, mediatype, position=None):
+    def addpart(self, fileObject, href, mediatype, position=None):
         """
         Add a file to manifest, spine and toc
         :param element: ElementTree.Element
         """
         assert self.mode == "w", "%s is not writable" % self
+
+    def writetodisk(self, filename):
+        f = open(filename, "w")
+        self.filename.seek(0)
+        f.write(self.filename.read())
+        f.close()
