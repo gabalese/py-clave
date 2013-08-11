@@ -246,7 +246,8 @@ class GetFilePath(tornado.web.RequestHandler):
     def get(self, identifier, part):
         if identifier and part:
             try:
-                output = yield gen.Task(self.perform, identifier, part)
+                output, mimetype = yield gen.Task(self.perform, identifier, part)
+                self.set_header("Content-Type", mimetype)
                 self.write(output)
                 self.finish()
             except IOError:
@@ -269,11 +270,18 @@ class GetFilePath(tornado.web.RequestHandler):
                 if i.endswith(part):
                     filepath = i
             output = epub.read(filepath)
-
+            mimetype = ""
+            for i in epub.info["manifest"]:
+                if i["href"].endswith(part):
+                    mimetype = i["mimetype"]
+                else:
+                    mimetype = ""
         except KeyError:
             output = "Nope."
+            mimetype = ""
             pass
-        return callback(output)
+        response = (output, mimetype)
+        return callback(response)
 
 
 class GetResource(tornado.web.RequestHandler):
