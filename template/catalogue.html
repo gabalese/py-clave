@@ -12,27 +12,27 @@
   <h1>py-clave <small>demo server</small></h1>
     </div>
     {% if search %}
-    <h3>Search results for <em>{{search}}</em></h3>
-        {% else %}
-    <div class="row">
-    <div class="col-lg-12">
-    <form class="form-inline" action="/catalogue/search" method="GET">
-    <input name="title" type="text" placeholder="Search title..." class="col-lg-12">
-    </form>
-    </div>
-    </div>
-    <br/>
-    {% end %}
-    <div class="row">
-<ul class="list-group">
-    {% for i in output %}
-  <li class="list-group-item"><em>{{output[i][0].encode("utf-8")}}</em> by <strong>{{output[i][2].encode("utf-8")}}</strong>
-      <a href="/book/{{i}}" class="btn btn-info btn-small">View</a>
-      <a class="btn btn-success btn-small" href="/book/{{i}}/download">Download</a>
-  </li>
-    {% end %}
-</ul>
+        <h3>Search results for <em>{{search}}</em></h3>
+    {% else %}
+        <div class="row">
+        <div class="col-lg-12">
+        <form class="form-inline" action="/catalogue/search" method="GET">
+        <input name="title" type="text" placeholder="Search title..." class="col-lg-12">
+        </form>
         </div>
+        </div>
+        <br/>
+    {% end %}
+    <div class="row">
+        <ul class="list-group">
+            {% for i in output %}
+            <li class="list-group-item"><em>{{output[i][0].encode("utf-8")}}</em> by <strong>{{output[i][2].encode("utf-8")}}</strong>
+              <a href="/book/{{i}}" class="btn btn-info btn-small">View</a>
+              <a class="btn btn-success btn-small" href="/book/{{i}}/download">Download</a>
+            </li>
+            {% end %}
+        </ul>
+    </div>
 </div>
 </body>
 </html>

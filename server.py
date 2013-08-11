@@ -74,7 +74,6 @@ if __name__ == "__main__":
             x.start()
 
         def update_xml_feed():
-            print "OK..."
             x = Thread(target=data.opds.updateCatalog)
             x.start()
 

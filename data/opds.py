@@ -5,6 +5,7 @@ from etbuilder import Builder
 import uuid
 import StringIO
 import time
+import os
 
 
 E = Builder()
@@ -69,5 +70,5 @@ def generateAcquisitionFeed():
 
 def updateCatalog():
     catalogue = generateCatalogRoot()
-    with open("feed.xml", "w") as f:
+    with open(os.path.join(os.path.dirname(__file__), os.path.pardir, "feed.xml"), "w") as f:
         f.write(catalogue)
