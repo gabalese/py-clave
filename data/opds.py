@@ -38,7 +38,7 @@ def generateCatalogRoot():
         entry_id = ET.SubElement(entry, "id")
         entry_id.text = item["isbn"]
         entry_updated = ET.SubElement(entry, "updated")
-        entry_updated.text = time.strftime("%Y-%m-%dT%H:%M:%S")
+        entry_updated.text = item["timest"]
         entry_author = ET.SubElement(entry, "author")
         entry_author_name = ET.SubElement(entry_author, "name")
         entry_author_name.text = item["author"]
@@ -50,7 +50,7 @@ def generateCatalogRoot():
         try:
             entry_issued.text = epub.info["metadata"]["date"][0]
         except KeyError:
-            entry_issued.text = ""
+            entry_issued.text = item["timest"]
         entry_summary = ET.SubElement(entry, "summary")
         entry_summary.text = epub.info["metadata"].get("description", "")
         link = ET.SubElement(entry, "link", rel="http://opds-spec.org/acquisition",

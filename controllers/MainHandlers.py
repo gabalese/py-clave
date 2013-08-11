@@ -247,7 +247,6 @@ class GetFilePath(tornado.web.RequestHandler):
         if identifier and part:
             try:
                 output = yield gen.Task(self.perform, identifier, part)
-                self.set_header("Content-Type", "text/html")
                 self.write(output)
                 self.finish()
             except IOError:
