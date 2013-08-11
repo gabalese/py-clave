@@ -270,12 +270,10 @@ class GetFilePath(tornado.web.RequestHandler):
                 if i.endswith(part):
                     filepath = i
             output = epub.read(filepath)
-            mimetype = ""
+            mimetype = ""  # play safe
             for i in epub.info["manifest"]:
                 if i["href"].endswith(part):
                     mimetype = i["mimetype"]
-                else:
-                    mimetype = ""
         except KeyError:
             output = "Nope."
             mimetype = ""
