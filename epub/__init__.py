@@ -5,7 +5,6 @@ import uuid
 from StringIO import StringIO
 import datetime
 
-from xml.dom import minidom
 import xml.etree.ElementTree as ET
 
 TMP = {"opf": None, "ncx": None}
@@ -232,12 +231,12 @@ class EPUB(ZIP.ZipFile):
                         <guide>
                         </guide>
                         </package>"""
-        doc = minidom.parseString(opf_tmpl.format(uid=self.uid,
-                                                  date=today,
-                                                  title=self.info["metadata"]["title"],
-                                                  lang=self.info["metadata"]["language"]
-                                                  ))
-        return doc.toxml('UTF-8')
+
+        doc = opf_tmpl.format(uid=self.uid,
+                              date=today,
+                              title=self.info["metadata"]["title"],
+                              lang=self.info["metadata"]["language"])
+        return doc
 
     def _init_ncx(self):
         """
@@ -261,8 +260,9 @@ class EPUB(ZIP.ZipFile):
                         <navMap>
                         </navMap>
                         </ncx>"""
-        ncx = minidom.parseString(ncx_tmpl.format(uid=self.uid, title="Default"))
-        return ncx.toxml('UTF-8')
+
+        ncx = ncx_tmpl.format(uid=self.uid, title="Default")
+        return ncx
 
     def _containerxml(self):
         template = """<?xml version="1.0" encoding="UTF-8"?>
@@ -316,7 +316,7 @@ class EPUB(ZIP.ZipFile):
         self.opf[1].append(element)
         return element.attrib["id"]
 
-    def addpart(self, fileObject, href, mediatype, position=None, type="text", linear="yes"):
+    def addpart(self, fileObject, href, mediatype, position=None, reftype="text", linear="yes"):
         """
         Add a file as part of the epub file, i.e. to manifest and spine (and guide?)
 
@@ -326,12 +326,12 @@ class EPUB(ZIP.ZipFile):
         :type position: int
         :param position: order in spine [from 0 to len(opf/manifest))]
         :param linear: linear="yes" or "no"
-        :param type: type to assign in guide/reference
+        :param reftype: type to assign in guide/reference
         """
         assert self.mode != "r", "%s is not writable" % self
         fileid = self.additem(fileObject, href, mediatype)
         itemref = ET.Element("opf:itemref", attrib={"idref": fileid, "linear": linear})
-        reference = ET.Element("opf:reference", attrib={"title": href, "href": href, "type": type})
+        reference = ET.Element("opf:reference", attrib={"title": href, "href": href, "type": reftype})
         if position is None:
             self.opf[2].append(itemref)
             self.opf[3].append(reference)
