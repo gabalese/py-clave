@@ -8,7 +8,7 @@ from threading import Thread
 from controllers.TestHandlers import PingHandler, CheckDB
 from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, \
     ShowFileToc, GetFilePart, GetFilePath, DownloadPublication, OPDSCatalogue, ShowManifest, GetResource, MainQuery, \
-    MainHandler
+    MainHandler, DownloadWithExLibris
 
 import data.opds
 
@@ -30,6 +30,7 @@ application = tornado.web.Application([
     (r"/book/([^/]+$)", GetInfo),
     #  Get whole book
     (r"/book/([^/]+)/download", DownloadPublication),
+    (r"/book/([^/]+)/download/exlibris", DownloadWithExLibris),
     #  Show toc
     (r"/book/([^/]+)/toc", ShowFileToc),
     #  Query titles

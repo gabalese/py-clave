@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 import re
 import os
 import time
+import datetime
 from StringIO import StringIO
 from urlparse import parse_qs as parse_querystring
 
@@ -58,7 +59,10 @@ class GeneralErrorHandler(tornado.web.RequestHandler):
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("hello.html", title="Welcome!", user=user_real_ip(self.request), host=self.request.headers.get("Host"))
+        self.render("hello.html",
+                    title="Welcome!",
+                    user=user_real_ip(self.request),
+                    host=self.request.headers.get("Host"))
 
 
 class GetInfo(tornado.web.RequestHandler):
@@ -330,7 +334,9 @@ class DownloadPublication(tornado.web.RequestHandler):
         if filename:
             database, conn = opendb()
             try:
-                path = database.execute("SELECT path FROM books WHERE isbn = '{0}' ".format(filename)).fetchone()["path"]
+                path = database.execute(
+                    "SELECT path FROM books WHERE isbn = '{0}' ".format(filename)
+                ).fetchone()["path"]
             except TypeError:
                 raise tornado.web.HTTPError(404)
             finally:
@@ -339,6 +345,39 @@ class DownloadPublication(tornado.web.RequestHandler):
             self.set_header('Content-Type', 'application/zip')
             self.set_header('Content-Disposition', 'attachment; filename='+os.path.basename(path)+'')
             self.write(output.read())
+        else:
+            raise tornado.web.HTTPError(404)
+
+
+class DownloadWithExLibris(tornado.web.RequestHandler):
+
+    def get(self, filename):
+        if filename:
+            database, conn = opendb()
+            try:
+                path = database.execute(
+                    "SELECT path FROM books WHERE isbn = '{0}' ".format(filename)
+                ).fetchone()["path"]
+            except TypeError:
+                raise tornado.web.HTTPError(404)
+            finally:
+                conn.close()
+
+            output = EPUB(path, "a")
+
+            exlibris = open("template/exlibris.xhtml", "r").read().format(
+                host=self.request.headers.get("Host"),
+                user=user_real_ip(self.request),
+                date=datetime.date.today())
+
+            part = StringIO(exlibris)
+            output.addpart(part, "exlibris.xhtml", "application/xhtml+xml", 2)
+            output.close()
+            output.filename.seek(0)
+
+            self.set_header('Content-Type', 'application/zip')
+            self.set_header('Content-Disposition', 'attachment; filename='+os.path.basename(path)+'')
+            self.write(output.filename.read())
         else:
             raise tornado.web.HTTPError(404)
 

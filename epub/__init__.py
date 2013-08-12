@@ -17,6 +17,10 @@ NAMESPACE = {
     "ncx": "{http://www.daisy.org/z3986/2005/ncx/}"
 }
 
+ET.register_namespace('dc', "http://purl.org/dc/elements/1.1/")
+ET.register_namespace('opf', "http://www.idpf.org/2007/opf")
+ET.register_namespace('ncx', "http://www.daisy.org/z3986/2005/ncx/")
+
 
 class InvalidEpub(Exception):
     pass
@@ -31,7 +35,7 @@ class EPUB(ZIP.ZipFile):
         """
         Global Init Switch
 
-        :type filename: str or StringIO
+        :type filename: str or StringIO()
         :param filename: File to be processed
         :type mode: str
         :param mode: "w" or "r", mode to init the zipfile
@@ -43,9 +47,14 @@ class EPUB(ZIP.ZipFile):
             ZIP.ZipFile.__init__(self, self.filename, mode="w")
             self.__init__write()
         elif mode == "a":
-            self.filename = filename
-            ZIP.ZipFile.__init__(self, filename, mode="a")
-            self.__init__read(filename)
+            assert not isinstance(filename, StringIO), "Can't append to StringIO object: %s" % filename
+            tmp = open(filename, "r")  # ensure that the input file is never-ever overwritten
+            tmp.seek(0)
+            initfile = StringIO()
+            initfile.write(tmp.read())
+            tmp.close()
+            ZIP.ZipFile.__init__(self, initfile, mode="a")
+            self.__init__read(initfile)
         else:  # retrocompatibility?
             ZIP.ZipFile.__init__(self, filename, mode="r")
             self.__init__read(filename)
@@ -54,7 +63,7 @@ class EPUB(ZIP.ZipFile):
         """
         Constructor to initialize the zipfile in read-only mode
 
-        :type filename: str or StringIO
+        :type filename: str or StringIO()
         :param filename: File to be processed
         """
         self.filename = filename
@@ -300,13 +309,38 @@ class EPUB(ZIP.ZipFile):
         :param mediatype:
         """
         assert self.mode != "r", "%s is not writable" % self
-        element = ET.Element("item", attrib={"id": str(uuid.uuid4())[:5], "href": href, "media-type": mediatype})
+        element = ET.Element("opf:item",
+                             attrib={"id": "id_"+str(uuid.uuid4())[:5], "href": href, "media-type": mediatype})
+
         self.writestr(os.path.join(self.root_folder, element.attrib["href"]), fileObject.getvalue())
         self.opf[1].append(element)
+        return element.attrib["id"]
 
-    def addpart(self, fileObject, href, mediatype, position=None, type="text"):
-        assert self.mode == "w", "%s is not writable" % self
-        # TODO
+    def addpart(self, fileObject, href, mediatype, position=None, type="text", linear="yes"):
+        """
+        Add a file as part of the epub file, i.e. to manifest and spine (and guide?)
+
+        :param fileObject: file to be inserted
+        :param href: path inside the epub archive
+        :param mediatype: mimetype of the fileObject
+        :type position: int
+        :param position: order in spine [from 0 to len(opf/manifest))]
+        :param linear: linear="yes" or "no"
+        :param type: type to assign in guide/reference
+        """
+        assert self.mode != "r", "%s is not writable" % self
+        fileid = self.additem(fileObject, href, mediatype)
+        itemref = ET.Element("opf:itemref", attrib={"idref": fileid, "linear": linear})
+        reference = ET.Element("opf:reference", attrib={"title": href, "href": href, "type": type})
+        if position is None:
+            self.opf[2].append(itemref)
+            self.opf[3].append(reference)
+        else:
+            assert len(self.opf[2]) >= position+1, \
+                "Wrong position parameter: %d is longer than %d" % (position, len(self.opf[2]))
+            self.opf[2].insert(position, itemref)
+            if len(self.opf[3]) >= position+1:
+                self.opf[3].insert(position, reference)
 
     def writetodisk(self, filename):
         """
