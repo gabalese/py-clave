@@ -26,7 +26,7 @@
     <div class="row">
         <ul class="list-group">
             {% for i in output %}
-            <li class="list-group-item"><em>{{output[i][0].encode("utf-8")}}</em> by <strong>{{output[i][2].encode("utf-8")}}</strong>
+            <li class="list-group-item"><em>{{output[i]["title"].encode("utf-8")}}</em> by <strong>{{output[i]["author"].encode("utf-8")}}</strong>
               <a href="/book/{{i}}" class="btn btn-info btn-small">View</a>
               <a class="btn btn-success btn-small" href="/book/{{i}}/download">Download</a>
                 <a class="btn btn-primary btn-small" href="/book/{{i}}/download/exlibris">Download (with exlibris)</a>

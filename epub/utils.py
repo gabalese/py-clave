@@ -13,5 +13,7 @@ def listFiles():
                 SELECT isbn, title, path, author FROM books
             """)
     for entry in result:
-        meta[entry["isbn"]] = [entry["title"], os.path.basename(entry["path"]), entry["author"]]
+        meta[entry["isbn"]] = {"title": entry["title"],
+                               "filename": os.path.basename(entry["path"]),
+                               "author": entry["author"]}
     return meta
