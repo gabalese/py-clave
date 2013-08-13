@@ -1,5 +1,4 @@
 import os
-from threading import Thread
 from multiprocessing import Process
 
 import tornado.web
@@ -57,21 +56,21 @@ if __name__ == "__main__":
     application.listen(PORT)
 
     try:
-        def update_db_new_thread():
+        def worker_update_db():
             x = Process(target=updateDB)
             x.start()
 
-        def update_xml_feed():
+        def worker_update_feed():
             x = Process(target=updateCatalog)
             x.start()
 
-        update_db_new_thread()
-        update_xml_feed()
+        worker_update_db()
+        worker_update_feed()
 
-        periodic = tornado.ioloop.PeriodicCallback(update_db_new_thread, DB_UPDATE_TIMEOUT)
+        periodic = tornado.ioloop.PeriodicCallback(worker_update_db, DB_UPDATE_TIMEOUT)
         periodic.start()
 
-        update_xml = tornado.ioloop.PeriodicCallback(update_xml_feed, FEED_UPDATE_TIMEOUT)
+        update_xml = tornado.ioloop.PeriodicCallback(worker_update_feed, FEED_UPDATE_TIMEOUT)
         update_xml.start()
 
         tornado.ioloop.IOLoop.instance().start()
