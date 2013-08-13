@@ -69,6 +69,7 @@ if __name__ == "__main__":
             x.start()
 
         update_db_new_thread()
+        update_xml_feed()
 
         periodic = tornado.ioloop.PeriodicCallback(update_db_new_thread, DB_UPDATE_TIMEOUT)
         periodic.start()
