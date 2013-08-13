@@ -415,7 +415,7 @@ class MainQuery(tornado.web.RequestHandler):
         result = connessione.query(query.keys()[0], query.values()[0][0])
         meta = {}
         for entry in result:
-            meta[entry["isbn"]] = [entry["title"], os.path.basename(entry["path"]), entry["author"]]
+            meta[entry["isbn"]] = {"title": entry["title"], "filename": os.path.basename(entry["path"]), "author": entry["author"]}
         connessione.exit()
         if "text/html" in accepted_formats(self.request.headers.get("accept")):
             self.render("catalogue.html", output=meta, search=query.values()[0][0])
