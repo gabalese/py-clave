@@ -3,7 +3,7 @@ import time
 import json
 import os
 
-from data.data import opendb
+from data.utils import opendb
 
 
 class PingHandler(tornado.web.RequestHandler):
