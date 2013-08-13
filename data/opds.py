@@ -1,5 +1,5 @@
 from xml.etree import ElementTree as ET
-from data import opendb
+from utils import opendb
 from epub import EPUB
 from etbuilder import Builder
 import uuid
@@ -72,3 +72,4 @@ def updateCatalog():
     catalogue = generateCatalogRoot()
     with open(os.path.join(os.path.dirname(__file__), os.path.pardir, "feed.xml"), "w") as f:
         f.write(catalogue)
+    print "Catalogue updated at {}".format(time.strftime("%Y-%m-%dT%H:%M:%SZ"))
