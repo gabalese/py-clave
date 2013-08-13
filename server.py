@@ -1,20 +1,20 @@
 import sys
 import os
+from threading import Thread
 
 import tornado.web
 import tornado.ioloop
-from threading import Thread
 
 from controllers.TestHandlers import PingHandler, CheckDB
 from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, \
     ShowFileToc, GetFilePart, GetFilePath, DownloadPublication, OPDSCatalogue, ShowManifest, GetResource, MainQuery, \
     MainHandler, DownloadWithExLibris
 
-import data.opds
-
 import template.module.ui as UI
 
+from data.opds import updateCatalog
 from data.utils import updateDB
+from data.data import PORT, DB_UPDATE_TIMEOUT, FEED_UPDATE_TIMEOUT
 
 
 application = tornado.web.Application([
@@ -53,19 +53,10 @@ application = tornado.web.Application([
 tornado.web.ErrorHandler = GeneralErrorHandler
 
 if __name__ == "__main__":
-    try:
-        port = int(sys.argv[1])
-    except IndexError:
-        port = 8080
-    try:
-        timeout = int(sys.argv[2])
-    except IndexError:
-        timeout = 1000000
-    finally:
-        application.listen(port)
+
+    application.listen(PORT)
 
     try:
-
         def new_thread_wrapper(func):
             x = Thread(target=func)
             x.start()
@@ -75,15 +66,15 @@ if __name__ == "__main__":
             x.start()
 
         def update_xml_feed():
-            x = Thread(target=data.opds.updateCatalog)
+            x = Thread(target=updateCatalog)
             x.start()
 
         update_db_new_thread()
 
-        periodic = tornado.ioloop.PeriodicCallback(update_db_new_thread, timeout)
+        periodic = tornado.ioloop.PeriodicCallback(update_db_new_thread, DB_UPDATE_TIMEOUT)
         periodic.start()
 
-        update_xml = tornado.ioloop.PeriodicCallback(update_xml_feed, 300000)
+        update_xml = tornado.ioloop.PeriodicCallback(update_xml_feed, FEED_UPDATE_TIMEOUT)
         update_xml.start()
 
         tornado.ioloop.IOLoop.instance().start()
