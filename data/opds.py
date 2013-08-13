@@ -3,7 +3,6 @@ from utils import opendb
 from epub import EPUB
 from etbuilder import Builder
 import uuid
-import StringIO
 import time
 import os
 
@@ -53,15 +52,15 @@ def generateCatalogRoot():
             entry_issued.text = item["timest"]
         entry_summary = ET.SubElement(entry, "summary")
         entry_summary.text = epub.info["metadata"].get("description", "")
-        link = ET.SubElement(entry, "link", rel="http://opds-spec.org/acquisition",
-                             href="/book/{0}/download".format(item["isbn"]), type="application/epub+zip")
-        img = ET.SubElement(entry, "link", rel="http://opds-spec.org/image",
-                            href="/book/{0}/manifest/{1}".format(item["isbn"], epub.cover), type="image/jpg")
-        thumb = ET.SubElement(entry, "link", rel="http://opds-spec.org/image/thumbnail",
-                              href="/book/{0}/manifest/{1}".format(item["isbn"], epub.cover), type="image/jpg")
-    output = StringIO.StringIO()
-    ET.ElementTree(feed).write(output, encoding="UTF-8", xml_declaration=True)
-    return output.getvalue()
+        ET.SubElement(entry, "link", rel="http://opds-spec.org/acquisition",
+                      href="/book/{0}/download".format(item["isbn"]), type="application/epub+zip")
+        ET.SubElement(entry, "link", rel="http://opds-spec.org/image",
+                      href="/book/{0}/manifest/{1}".format(item["isbn"], epub.cover), type="image/jpg")
+        ET.SubElement(entry, "link", rel="http://opds-spec.org/image/thumbnail",
+                      href="/book/{0}/manifest/{1}".format(item["isbn"], epub.cover), type="image/jpg")
+
+    output = ET.tostring(feed, encoding="UTF-8")
+    return output
 
 
 def generateAcquisitionFeed():
