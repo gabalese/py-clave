@@ -1,5 +1,6 @@
 import os
 from threading import Thread
+from multiprocessing import Process
 
 import tornado.web
 import tornado.ioloop
@@ -56,16 +57,12 @@ if __name__ == "__main__":
     application.listen(PORT)
 
     try:
-        def new_thread_wrapper(func):
-            x = Thread(target=func)
-            x.start()
-
         def update_db_new_thread():
-            x = Thread(target=updateDB)
+            x = Process(target=updateDB)
             x.start()
 
         def update_xml_feed():
-            x = Thread(target=updateCatalog)
+            x = Process(target=updateCatalog)
             x.start()
 
         update_db_new_thread()
