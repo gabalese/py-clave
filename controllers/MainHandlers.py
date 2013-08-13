@@ -13,8 +13,7 @@ from tornado import gen
 from epub import EPUB
 from epub.utils import listFiles
 
-from data.utils import opendb
-from data.data import DatabaseConnection
+from data.utils import opendb, DatabaseConnection
 from data import opds
 
 
@@ -318,8 +317,8 @@ class GetResource(tornado.web.RequestHandler):
                 if i["id"] == toc_id:
                     filepath = i["href"]
                     mimetype = i["mimetype"]
-            if not mimetype:
-                mimetype = "text/html"
+                if not mimetype:
+                    mimetype = "text/plain"
             output = epub.read(os.path.join(epub.root_folder, filepath)), mimetype
 
         except KeyError:
