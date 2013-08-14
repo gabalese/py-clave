@@ -156,7 +156,7 @@ class DatabaseConnection():
         pass
 
     def query(self, field, query):
-        result = self.database.execute("SELECT * FROM books WHERE {} LIKE '%{}%'".format(field, query)).fetchall()
+        result = self.database.execute("SELECT * FROM books WHERE {} LIKE '%{}%' ORDER BY title ASC".format(field, query)).fetchall()
         return result
 
     def update(self):
