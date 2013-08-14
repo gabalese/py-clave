@@ -40,7 +40,7 @@ def generateCatalogRoot():
         entry_updated.text = item["timest"]
         entry_author = ET.SubElement(entry, "author")
         entry_author_name = ET.SubElement(entry_author, "name")
-        entry_author_name.text = item.get("author", "")
+        entry_author_name.text = item["author"]
         entry_author_uri = ET.SubElement(entry_author, "uri")
         entry_author_uri.text = ""
         entry_language = ET.SubElement(entry, "{http://purl.org/dc/terms}language")
