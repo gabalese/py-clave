@@ -363,8 +363,7 @@ class DownloadWithExLibris(tornado.web.RequestHandler):
                 conn.close()
 
             output = EPUB(path, "a")
-
-            exlibris = open("template/exlibris.xhtml", "r").read().format(
+            exlibris = open(os.path.join(self.get_template_path(), "exlibris.xhtml"), "r").read().format(
                 host=self.request.headers.get("Host"),
                 user=user_real_ip(self.request),
                 date=datetime.date.today())
