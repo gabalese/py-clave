@@ -6,6 +6,7 @@ from multiprocessing import Process, Queue
 
 from data import DBNAME, EPUB_FILES_PATH
 from epub import EPUB, InvalidEpub
+from opds import updateCatalog
 
 
 def initdb():
@@ -143,6 +144,7 @@ def updateDB(ext="epub"):
 
     conn.close()
     print "Update done in {} seconds".format(round((time.time()-start_time), 2))
+    updateCatalog()
 
 
 class DatabaseConnection():

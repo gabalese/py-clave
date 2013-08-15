@@ -11,9 +11,8 @@ from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, \
 
 import template.module.ui as UI
 
-from data.opds import updateCatalog
 from data.utils import updateDB
-from data.data import PORT, DB_UPDATE_TIMEOUT, FEED_UPDATE_TIMEOUT
+from data.data import PORT, DB_UPDATE_TIMEOUT
 
 
 application = tornado.web.Application([
@@ -60,18 +59,10 @@ if __name__ == "__main__":
             x = Process(target=updateDB)
             x.start()
 
-        def worker_update_feed():
-            x = Process(target=updateCatalog)
-            x.start()
-
         worker_update_db()
-        worker_update_feed()
 
         periodic = tornado.ioloop.PeriodicCallback(worker_update_db, DB_UPDATE_TIMEOUT)
         periodic.start()
-
-        update_xml = tornado.ioloop.PeriodicCallback(worker_update_feed, FEED_UPDATE_TIMEOUT)
-        update_xml.start()
 
         tornado.ioloop.IOLoop.instance().start()
 

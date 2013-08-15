@@ -1,5 +1,5 @@
 from xml.etree import ElementTree as ET
-from utils import opendb
+import utils
 from epub import EPUB
 from etbuilder import Builder
 import uuid
@@ -25,7 +25,7 @@ def generateCatalogRoot():
                ),
              xmlns="http://www.w3.org/2005/Atom"
              )
-    database, conn = opendb()
+    database, conn = utils.opendb()
     result = database.execute("""
                 SELECT author, isbn, title, path, timest FROM books ORDER BY timest DESC
             """)
