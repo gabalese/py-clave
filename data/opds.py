@@ -27,7 +27,7 @@ def generateCatalogRoot():
              )
     database, conn = opendb()
     result = database.execute("""
-                SELECT author, isbn, title, path, timest FROM books
+                SELECT author, isbn, title, path, timest FROM books ORDER BY timest DESC
             """)
     for item in result:
         epub = EPUB(item["path"])
