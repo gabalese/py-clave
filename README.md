@@ -42,10 +42,14 @@ $ python server.py --PORT=8081 --EPUB_FILES_PATH=/absolute/path/to/files/directo
 ```
 
 `--PORT` (int): the port on which the server will keep listening
+
 `--EPUB_FILES_PATH` (str): the absolute path where the epub files are stored
+
 `--DBNAME` (str): name of the sqlite cache file
+
 `--DB_UPDATE_TIMEOUT` (milliseconds): interval between DB updates
-`--FEED_UPDATE_TIMEOUT` (milliseconds): interval between OPDS xml feed update
+
+Version 1.1 integrated database and feed update routines, so `--FEED_UPDATE_TIMEOUT` is no more supported.
 
 The intended deployement scenario involves more than one tornado instances on the same server, behind a nginx frontend. Different instances can *in theory* accept different `--EPUB_FILES_PATH` strings, but the `--DBNAME` must be the same or inconsistency may arise unnoticed (since every instance is executed in a different process).
 

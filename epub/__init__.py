@@ -5,7 +5,14 @@ import uuid
 from StringIO import StringIO
 import datetime
 
-import xml.etree.ElementTree as ET
+try:
+    import lxml.etree.ElementTree as ET
+except ImportError:
+    try:
+        import xml.etree.cElementTree as ET
+    except ImportError:
+        import xml.etree.ElementTree as ET
+
 
 TMP = {"opf": None, "ncx": None}
 FLO = None
