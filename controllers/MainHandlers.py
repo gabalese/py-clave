@@ -2,7 +2,6 @@ import json
 import xml.etree.ElementTree as ET
 import re
 import os
-import time
 import datetime
 from StringIO import StringIO
 from urlparse import parse_qs as parse_querystring
@@ -24,16 +23,19 @@ def accepted_formats(header):
     :type header: tornado.web.RequestHandler.request.headers
     :param header: HTTP Request Header
     """
-    header_list = header.split(",")
-    for i, v in enumerate(header_list):
-        header_list[i] = v.split(";")[0].strip()
-    return header_list
+    try:
+        header_list = header.split(",")
+        for i, v in enumerate(header_list):
+            header_list[i] = v.split(";")[0].strip()
+        return header_list
+    except AttributeError:  # No Accept: header?
+        return []
 
 
 def user_real_ip(request):
     """
     Tornado is meant to be deployed behind a proxy. The official documentation says
-    remote_ip is to check if a X-Real-IP exists, but apparently that's not the case.
+    remote_ip is to check if a X-Real-Ip exists, but apparently that's not the case.
 
     :type request: tornado.web.RequestHandler.request
     :param request: HTTP Request
@@ -385,7 +387,7 @@ class OPDSCatalogue(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @gen.engine
     def get(self):
-        if os.path.exists("feed.xml") and (time.time() - os.path.getmtime("feed.xml")) < 200:
+        if os.path.exists(os.path.join(os.path.dirname(__file__), os.path.pardir, "feed.xml")):
             self.set_header("Content-Type", "application/atom+xml")
             with open("feed.xml", "r") as f:
                 self.write(f.read())
@@ -399,7 +401,7 @@ class OPDSCatalogue(tornado.web.RequestHandler):
     def perform(self, callback):
         catalogue = opds.generateCatalogRoot()
         # Raw cache. TODO: better cache handling
-        with open("feed.xml", "w") as f:
+        with open(os.path.join(os.path.dirname(__file__), os.path.pardir, "feed.xml"), "w") as f:
             f.write(catalogue)
         return callback(catalogue)
 
