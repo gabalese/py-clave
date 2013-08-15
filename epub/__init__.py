@@ -104,7 +104,7 @@ class EPUB(zipfile.ZipFile):
 
         # Get id of the cover in <meta name="cover" />
         try:
-            coverid = self.opf.find('.//meta[@name="cover"]'.format(NAMESPACE["opf"])).get("content")
+            coverid = self.opf.find('.//{0}meta[@name="cover"]'.format(NAMESPACE["opf"])).get("content")
         except AttributeError:
             # It's a facultative field, after all
             coverid = None
