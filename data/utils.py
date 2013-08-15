@@ -101,8 +101,8 @@ def updateDB(ext="epub"):
 
     # Analyze
 
-    newfiles = set(walkerlist) - set(dblist)
-    oldfiles = set(dblist) - set(walkerlist)
+    newfiles = set(walkerlist) - set(dblist)  # new files: present in fs but not in db
+    oldfiles = set(dblist) - set(walkerlist)  # old files: present in db but not in fs
 
     for i in newfiles:
         path_queue.put(i)
