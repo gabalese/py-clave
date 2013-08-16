@@ -41,7 +41,7 @@ application = tornado.web.Application([
     (r"/book/([^/]+)/chapter/([^/]+)/fragment/([^/]+)", GetFilePart),
     #  Resolution fallback
     (r"/getpath/([^/]+)/(.+)", GetFilePath)],
-    debug=False,
+    debug=True,
     cookie_secret="ed54ef7408cd7eeeb5a819ddcc633550",  # TODO
     login_url="/login",  # TODO
     ui_modules={"Hello": UI.Hello},
