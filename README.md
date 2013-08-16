@@ -1,15 +1,25 @@
 py-clave
 ========
 
-A prototype implementation of a **set of public RESTful APIs** meant to enable clients to **retrieve metadata and contents** from a bunch of digital publications in **[EPUB2](http://idpf.org/epub/201) format** stored in free-form directory structure.
+A prototype server implementation of a **set of public RESTful APIs** meant to enable clients to **retrieve metadata and contents** from a bunch of digital publications in **[EPUB2](http://idpf.org/epub/201) format** stored in free-form directory structure.
 
 Written in [Python](http://www.python.org), it is built on the [tornado](http://www.tornadoweb.org/en/stable/) framework, an asynchronous non-blocking web library tuned for high performance and scalability.
 
-The core application in [/server.py](https://github.com/gabalese/py-clave/blob/master/server.py) implements the tornado.web.Application class, with threaded asynchronous handlers for each endpoint. It is meant to be deployed with [supervisord](http://supervisord.org/) process control system, in multiple instances listening to different ports, behind a [nginx](http://nginx.org/) frontend acting as a reversed proxy. The main process is run on the default 8080 port.
+The core application in [/server.py](https://github.com/gabalese/py-clave/blob/master/server.py) implements the tornado.web.Application class, with asynchronous handlers for each endpoint. It is meant to be deployed with [supervisord](http://supervisord.org/) process control system, in multiple instances listening to different ports, behind a [nginx](http://nginx.org/) frontend acting as a reversed proxy. The main process is run on the default 8080 port.
 
-On first run and after a fixed amount of time the server builds a sqlite3 cache of EPUB files stored in the `EPUB_FILES_PATH` directory (set in [data.py](https://github.com/gabalese/py-clave/blob/master/data/data.py)) in order to avoid filesystem traversal on each request. The cache is then updated with a [periodic callback](http://www.tornadoweb.org/en/stable/ioloop.html#tornado.ioloop.PeriodicCallback) invoked with a default interval of 120s, or an interval provided by CLI argument.
+On first run and after a fixed amount of time the server builds a sqlite3 cache of EPUB files stored in the `EPUB_FILES_PATH` directory (set at startime with the `--EPUB_FILES_PATH` flag) in order to avoid filesystem traversal on each request. The cache is then updated with a [periodic callback](http://www.tornadoweb.org/en/stable/ioloop.html#tornado.ioloop.PeriodicCallback) invoked with a default interval of 5m, or an interval provided by `--DB_UPDATE_TIMEOUT` flag.
 
-Exhaustive documentation for the implemented HTTP request may be found on the official [DOCS](http://docs.pyclave.apiary.io/). The API is currently designed to differentiate between a GET request coming from a browser reading the `Accept`: request header.
+Exhaustive documentation for the implemented HTTP request may be found on the official [DOCS](http://docs.pyclave.apiary.io/). The API is currently designed to differentiate between a GET request coming from a browser reading the `Accept`: request header, thus showing a descriptive UI rather than raw JSON output.
+
+Installation
+------------
+
+Just `clone` the master tree.
+
+```bash
+$ git clone https://github.com/gabalese/py-clave.git
+$ cd py-clave
+```
 
 Usage
 -----
@@ -32,9 +42,7 @@ Every relevant endpoint returns a JSON object when the HTTP request doesn't incl
 Configuration
 -------------
 
-py-clave now supports tornado.options, via command line parameters or `configuration.conf` file.
-
-To overwrite defaults, add a supported --FLAG=value when starting `server.py`. The following command shows all the supported parameters.
+py-clave now supports tornado.options. To overwrite defaults, add a supported --FLAG=value when starting `server.py`. The following command shows all the supported parameters.
 
 ```bash
 $ python server.py --PORT=8081 --EPUB_FILES_PATH=/absolute/path/to/files/directory --DBNAME=name.sql \
