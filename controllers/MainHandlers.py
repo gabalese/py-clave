@@ -421,4 +421,4 @@ class MainQuery(tornado.web.RequestHandler):
         if "text/html" in accepted_formats(self.request.headers.get("accept")):
             self.render("catalogue.html", output=meta, search=query.values()[0][0])
         else:
-            self.write(meta)
+            self.write(json.dumps(meta))
