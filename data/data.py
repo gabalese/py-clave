@@ -12,10 +12,7 @@ define("PORT", default=8080, help="Port to listen to")
 define("DB_UPDATE_TIMEOUT", default=1000000, help="Interval to update DB")
 define("EPUB_FILES_PATH", default=epub_path, help="Files storage directory")
 
-if os.path.exists(os.path.join(__file__, os.pardir, "config.conf")):
-    options.parse_config_file(os.path.join(__file__, os.pardir, "config.conf"))
-else:
-    options.parse_command_line()
+options.parse_command_line()
 
 for i in options.items():
     print "{} = {}".format(i[0], i[1])
