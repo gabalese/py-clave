@@ -83,6 +83,7 @@ class GetInfo(tornado.web.RequestHandler):
                             cover=response["cover"]
                             )
             else:
+                self.set_header("Content-Type", "application/json")
                 output = response
                 output["cover"] = "/book/{0}/manifest/{1}".format(response["id"], response["cover"])
                 self.write(json.dumps(output, indent=4))
@@ -421,4 +422,5 @@ class MainQuery(tornado.web.RequestHandler):
         if "text/html" in accepted_formats(self.request.headers.get("accept")):
             self.render("catalogue.html", output=meta, search=query.values()[0][0])
         else:
+            self.set_header("Content-Type", "application/json")
             self.write(json.dumps(meta))
