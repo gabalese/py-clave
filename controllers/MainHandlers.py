@@ -91,7 +91,7 @@ class GetInfo(tornado.web.RequestHandler):
                 self.write(json.dumps(output, indent=4))
                 self.finish()
         else:
-            raise tornado.web.HTTPError(400)
+            raise tornado.web.HTTPError(404)
 
     def querydb(self, isbn, callback):
         database, conn = opendb()
@@ -322,6 +322,7 @@ class GetCover(tornado.web.RequestHandler):
             conn.close()
         try:
             epub = EPUB(path)
+            filepath, mimetype = "", ""
             for i in epub.info["manifest"]:
                 if i["id"] == epub.cover:
                     filepath = i["href"]

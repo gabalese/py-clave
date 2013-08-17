@@ -7,9 +7,8 @@ import tornado.web
 import tornado.ioloop
 
 from controllers.TestHandlers import PingHandler, CheckDB
-from controllers.MainHandlers import GetInfo, GeneralErrorHandler, ListFiles, \
-    ShowFileToc, GetFilePart, GetFilePath, DownloadPublication, OPDSCatalogue, ShowManifest, GetResource, MainQuery, \
-    MainHandler, DownloadWithExLibris, GetCover
+from controllers.MainHandlers import GetInfo, ListFiles, ShowFileToc, GetFilePart, GetFilePath, DownloadPublication, \
+    OPDSCatalogue, ShowManifest, GetResource, MainQuery, MainHandler, DownloadWithExLibris, GetCover
 
 import template.module.ui as UI
 
@@ -51,11 +50,9 @@ application = tornado.web.Application([
     template_path=os.path.join(os.path.dirname(__file__), "template"),
     static_path=os.path.join(os.path.dirname(__file__), "static"))
 
-tornado.web.ErrorHandler = GeneralErrorHandler
-
 
 def worker_update_db():
-    """Multiprocess'd database update"""
+    """Spawn a child process to update DB in a non-blocking fashion"""
     x = Process(target=updateDB)
     x.start()
 
