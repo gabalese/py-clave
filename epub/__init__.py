@@ -306,9 +306,6 @@ class EPUB(zipfile.ZipFile):
         new_zip.close()                 # but it works, don't ever touch
         zipfile.ZipFile.__init__(self, FLO, mode="a")
 
-    def __del__(self):
-        pass
-
     def additem(self, fileObject, href, mediatype):
         """
         Add a file to manifest only
