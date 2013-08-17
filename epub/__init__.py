@@ -298,10 +298,16 @@ class EPUB(zipfile.ZipFile):
         new_zip = zipfile.ZipFile(FLO, 'w')
         for item in self.infolist():
             if item.filename not in paths:
-                new_zip.writestr(item.filename, self.read(item.filename))
+                try:
+                    new_zip.writestr(item.filename, self.read(item.filename))
+                except zipfile.BadZipfile:
+                    pass
         zipfile.ZipFile.close(self)     # Don't know why
-        new_zip.close()             # but it works, don't ever touch
+        new_zip.close()                 # but it works, don't ever touch
         zipfile.ZipFile.__init__(self, FLO, mode="a")
+
+    def __del__(self):
+        pass
 
     def additem(self, fileObject, href, mediatype):
         """
