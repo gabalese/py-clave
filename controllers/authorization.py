@@ -3,13 +3,16 @@ import functools
 
 
 def httpbasic(method):
+    """
+    Thanks Kevin Kelley <kelleyk@kelleyk.net> 2011
+    http://kelleyk.com/post/7362319243/easy-basic-http-authentication-with-tornado
+    """
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
         auth_header = self.request.headers.get('Authorization')
         if auth_header is None or not auth_header.startswith('Basic '):
             self.set_status(401)
             self.set_header('WWW-Authenticate', 'Basic realm=Restricted')
-            self._transforms = []
             self.finish()
             return None
         else:
