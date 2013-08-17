@@ -1,5 +1,7 @@
 import os
 from multiprocessing import Process
+import logging
+import signal
 
 import tornado.web
 import tornado.ioloop
@@ -50,26 +52,40 @@ application = tornado.web.Application([
 
 tornado.web.ErrorHandler = GeneralErrorHandler
 
+
+def worker_update_db():
+    """Multiprocess'd database update"""
+    x = Process(target=updateDB)
+    x.start()
+
+
+def stop_handler(sig, frame):
+    """To stop the server on received SIGINT"""
+    logging.warning('Caught signal: %s (%s), stopping server', sig, frame.f_lasti)
+    ioloop = tornado.ioloop.IOLoop.instance()
+    ioloop.add_callback(lambda x: x.stop(), ioloop)
+
+
+def update_handler(sig, frame):
+    """Update the server on USR1 signal"""
+    logging.warning('Update signal received! %s (%s)', sig, frame.f_lasti)
+    worker_update_db()
+
 if __name__ == "__main__":
 
     application.listen(PORT)
 
+    signal.signal(signal.SIGINT, stop_handler)      # kill -s INT
+    signal.signal(signal.SIGTERM, stop_handler)     # kill -s TERM
+    signal.signal(signal.SIGUSR1, update_handler)   # kill -s USR1
+
     try:
-        def worker_update_db():
-            x = Process(target=updateDB)
-            x.start()
-
         worker_update_db()
-
         periodic = tornado.ioloop.PeriodicCallback(worker_update_db, DB_UPDATE_TIMEOUT)
         periodic.start()
-
         tornado.ioloop.IOLoop.instance().start()
-
-    except KeyboardInterrupt:
-        tornado.ioloop.IOLoop.instance().close()
 
     except Exception as e:
         print "Uncaught exception"
-        print e
+        logging.warning(e)
         tornado.ioloop.IOLoop.instance().close()

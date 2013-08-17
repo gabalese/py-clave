@@ -14,9 +14,10 @@ define("EPUB_FILES_PATH", default=epub_path, help="Files storage directory")
 
 options.parse_command_line()
 
-for i in options.items():
+for i in options.items():  # print the init parameters on boot
     print "{} = {}".format(i[0], i[1])
 
+# map options to constants / too lazy to refactor in a elegant way
 EPUB_FILES_PATH = options.EPUB_FILES_PATH
 DBNAME = os.path.join(os.path.dirname(__file__), os.pardir, options.DBNAME)
 PORT, DB_UPDATE_TIMEOUT = options.PORT, options.DB_UPDATE_TIMEOUT
