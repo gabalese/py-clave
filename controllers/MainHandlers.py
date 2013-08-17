@@ -9,6 +9,7 @@ from urlparse import parse_qs as parse_querystring
 import tornado.web
 from tornado import gen
 
+import authorization
 from epub import EPUB
 from epub.utils import listFiles
 
@@ -59,10 +60,12 @@ class GeneralErrorHandler(tornado.web.RequestHandler):
 
 
 class MainHandler(tornado.web.RequestHandler):
-    def get(self):
+
+    @authorization.httpbasic
+    def get(self, *args, **kwargs):
         self.render("hello.html",
                     title="Welcome!",
-                    user=user_real_ip(self.request),
+                    user=kwargs["user"],
                     host=self.request.headers.get("Host"))
 
 
