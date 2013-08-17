@@ -59,14 +59,14 @@ def worker_update_db():
 
 def stop_handler(sig, frame):
     """To stop the server on received SIGINT"""
-    logging.warning('Caught signal: %s (%s), stopping server', sig, frame.f_lasti)
+    logging.warning('[%s (%s)] Caught INT signal: stopping server', sig, frame.f_lasti)
     ioloop = tornado.ioloop.IOLoop.instance()
     ioloop.add_callback(lambda x: x.stop(), ioloop)
 
 
 def update_handler(sig, frame):
     """Update the server on USR1 signal"""
-    logging.warning('Update signal received! %s (%s)', sig, frame.f_lasti)
+    logging.warning('[%s (%s)] Update signal USR1 received!', sig, frame.f_lasti)
     worker_update_db()
 
 if __name__ == "__main__":
