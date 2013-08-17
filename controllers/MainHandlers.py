@@ -61,11 +61,10 @@ class GeneralErrorHandler(tornado.web.RequestHandler):
 
 class MainHandler(tornado.web.RequestHandler):
 
-    @authorization.httpbasic
     def get(self, *args, **kwargs):
         self.render("hello.html",
                     title="Welcome!",
-                    user=kwargs["user"],
+                    user=user_real_ip(self.request),
                     host=self.request.headers.get("Host"))
 
 
@@ -186,7 +185,9 @@ class ShowFileToc(tornado.web.RequestHandler):
 
 
 class GetFilePart(tornado.web.RequestHandler):
+    """Get TOC item"""
 
+    @authorization.httpbasic
     @tornado.web.asynchronous
     @gen.engine
     def get(self, identifier, part, section=False):
@@ -249,7 +250,9 @@ class GetFilePart(tornado.web.RequestHandler):
 
 
 class GetFilePath(tornado.web.RequestHandler):
+    """Resolution fallback"""
 
+    @authorization.httpbasic
     @tornado.web.asynchronous
     @gen.engine
     def get(self, identifier, part):
@@ -291,8 +294,49 @@ class GetFilePath(tornado.web.RequestHandler):
         return callback(response)
 
 
-class GetResource(tornado.web.RequestHandler):
+class GetCover(tornado.web.RequestHandler):
+    """Special handle to allow unauthorized fetching of cover"""
 
+    @tornado.web.asynchronous
+    @gen.engine
+    def get(self, identifier):
+        if identifier:
+            try:
+                output, mimetype = yield gen.Task(self.perform, identifier)
+                print mimetype
+                self.set_header("Content-Type", mimetype)
+                self.write(output)
+                self.finish()
+            except IOError:
+                raise tornado.web.HTTPError(404)
+        else:
+            raise tornado.web.HTTPError(400)
+
+    def perform(self, identifier, callback):
+        database, conn = opendb()
+        try:
+            path = database.execute("SELECT path FROM books WHERE isbn = '{0}'".format(identifier)).fetchone()["path"]
+        except TypeError:
+            raise tornado.web.HTTPError(404)
+        finally:
+            conn.close()
+        try:
+            epub = EPUB(path)
+            for i in epub.info["manifest"]:
+                if i["id"] == epub.cover:
+                    filepath = i["href"]
+                    mimetype = i["mimetype"]
+            output = epub.read(os.path.join(epub.root_folder, filepath)), mimetype
+        except KeyError:
+            output = "KEY ERROR"
+            pass
+        return callback(output)
+
+
+class GetResource(tornado.web.RequestHandler):
+    """Fetch from manifest"""
+
+    @authorization.httpbasic
     @tornado.web.asynchronous
     @gen.engine
     def get(self, identifier, manifest_id):
@@ -335,6 +379,7 @@ class GetResource(tornado.web.RequestHandler):
 
 class DownloadPublication(tornado.web.RequestHandler):
 
+    @authorization.httpbasic
     def get(self, filename):
         if filename:
             database, conn = opendb()
