@@ -2,7 +2,9 @@
 <html>
 <head>
     {% block head %}
+    {% block title %}
     <title>{{ title }}</title>
+    {% end %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="{{ static_url('bootstrap.min.js') }}"></script>
     <link href="{{ static_url('bootstrap.min.css') }}" rel="stylesheet">
@@ -19,8 +21,8 @@
 </div>
 <footer class="container">
     {% block footer %}
-    py-clave © 2013 Gabriele Alese<br/>
-    <a href="http://www.alese.it">alese.it</a>
+    <h4>py-clave © 2013 Gabriele Alese</h4>
+    <p><a href="http://www.alese.it">alese.it</a></p>
     {% end %}
 </footer>
 </body>

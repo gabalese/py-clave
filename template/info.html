@@ -1,16 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
+{% extends "base.html" %}
+
+    {% block title %}
     <title>{{ title }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="{{ static_url('bootstrap.min.js') }}"></script>
-    <link href="{{ static_url('bootstrap.min.css') }}" rel="stylesheet">
-</head>
-<body>
-<div class="container">
-    <div class="page-header">
+    {% end %}
+
+  {% block header %}
   <h1>{{title}} <small>{{meta["creator"]}}</small></h1>
-</div>
+  {% end %}
+  {% block content %}
     <div class="row">
         {% if cover != None %}
         <div class="col-lg-2">
@@ -24,7 +21,7 @@
             {% end %}
             </ul>
         <a class="btn btn-success btn-large" href="/book/{{id}}/download">Download</a>
-            <a class="btn btn-primary btn-sm" href="/book/{{id}}/download/exlibris">Download <small>(with exlibris)</small></a>
+            <a class="btn btn-warning btn-large" href="/book/{{id}}/download/exlibris">Download <small>(with exlibris)</small></a>
         </div>
     </div>
 <h2>Book contents</h2>
@@ -52,6 +49,4 @@
             </div>
         </div>
      </div>
-</div>
-</body>
-</html>
+{% end %}

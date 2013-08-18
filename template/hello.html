@@ -1,9 +1,26 @@
 {% extends "base.html" %}
 
 {% block header %}
-<h1>Welcome to {{host}} <small>a py-clave staging server</small></h1>
+<h1>Welcome to {{host}} <small>a py-clave demo server</small></h1>
 {% end %}
 
 {% block content %}
         {% module Hello(user) %}
+        <h3>What is this?</h3>
+        <p><strong>py-clave</strong> is a <em>prototype</em> server implementation of a set of public <strong>RESTful APIs</strong> meant to enable clients to retrieve metadata and contents from a bunch of digital publications in EPUB2 format stored in free-form directory structure.</p>
+
+<p>Written in <strong>Python</strong>, it is built on the <strong><a href="http://www.tornadoweb.org">tornado framework</a></strong>, an asynchronous non-blocking web library tuned for high performance and scalability.</p>
+
+        <h3>How does this work?</h3>
+<p>The core application in <code>/server.py</code> implements the <code>tornado.web.Application</code> class, with asynchronous handlers for each endpoint. It is meant to be deployed with supervisord process control system, in multiple instances listening to different ports, behind a nginx frontend acting as a reverse proxy. The main process is run on the default 8080 port.</p>
+
+<p>On first run and after a fixed amount of time the server builds a sqlite3 cache of EPUB files stored in the <code>EPUB_FILES_PATH</code> directory (set at startime with the <code>--EPUB_FILES_PATH</code> flag) in order to avoid filesystem traversal on each request. The cache is then updated with a periodic callback invoked with a default interval of 5m, or an interval provided by <code>--DB_UPDATE_TIMEOUT</code> flag.</p>
+
+        <h3>Wanna know more?</h3>
+<p>Exhaustive documentation for the implemented HTTP request may be found on the <a href="http://docs.pyclave.apiary.io/">official DOCS</a>. The API is currently designed to differentiate between a GET request coming from a browser reading the Accept: request header, thus showing a descriptive UI rather than raw JSON output. (which is precisely the case, if you're browsing {{host}}).</p>
+
+        <a href="http://docs.pyclave.apiary.io"><button class="btn btn-default btn-large">Read the docs</button></a>
+        <a href="https://github.com/gabalese/py-clave"><button class="btn btn-info btn-large">See the project on github</button></a>
+        <a href="/catalogue"><button class="btn btn-success btn-large">Proceed to catalogue</button></a>
+        <br/>
 {% end %}

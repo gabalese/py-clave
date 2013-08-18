@@ -187,7 +187,6 @@ class ShowFileToc(tornado.web.RequestHandler):
 class GetFilePart(tornado.web.RequestHandler):
     """Get TOC item"""
 
-    @authorization.httpbasic
     @tornado.web.asynchronous
     @gen.engine
     def get(self, identifier, part, section=False):
@@ -252,7 +251,6 @@ class GetFilePart(tornado.web.RequestHandler):
 class GetFilePath(tornado.web.RequestHandler):
     """Resolution fallback"""
 
-    @authorization.httpbasic
     @tornado.web.asynchronous
     @gen.engine
     def get(self, identifier, part):
@@ -337,7 +335,6 @@ class GetCover(tornado.web.RequestHandler):
 class GetResource(tornado.web.RequestHandler):
     """Fetch from manifest"""
 
-    @authorization.httpbasic
     @tornado.web.asynchronous
     @gen.engine
     def get(self, identifier, manifest_id):
