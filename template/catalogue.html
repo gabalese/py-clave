@@ -41,7 +41,8 @@
             <li class="list-group-item"><em>{{i["title"].encode("utf-8")}}</em> by <strong>{{i["author"].encode("utf-8")}}</strong>
               <a href="/book/{{i['id']}}" class="btn btn-info btn-small">View</a>
               <a class="btn btn-success btn-small" href="/book/{{i['id']}}/download">Download</a>
-                <a class="btn btn-warning btn-small" href="/book/{{i['id']}}/download/exlibris">Download (with exlibris)</a>
+                <a class="btn btn-warning btn-small" href="/book/{{i['id']}}/download/exlibris">Download <small>(with exlibris)</small></a>
+                <a class="btn btn-default btn-small" href="/book/{{i['id']}}/download/preview">Download <small>(preview)</small></a>
             </li>
             {% end %}
         </ul>
