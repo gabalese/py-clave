@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 import re
 import os
 import datetime
+import mimetypes
 from StringIO import StringIO
 from urlparse import parse_qs as parse_querystring
 
@@ -301,7 +302,6 @@ class GetCover(tornado.web.RequestHandler):
         if identifier:
             try:
                 output, mimetype = yield gen.Task(self.perform, identifier)
-                print mimetype
                 self.set_header("Content-Type", mimetype)
                 self.write(output)
                 self.finish()
@@ -429,6 +429,89 @@ class DownloadWithExLibris(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(404)
 
 
+class DownloadPreview(tornado.web.RequestHandler):
+
+    def get(self, filename):
+        if filename:
+            database, conn = opendb()
+            try:
+                path = database.execute(
+                    "SELECT path FROM books WHERE isbn = '{0}' ".format(filename)
+                ).fetchone()["path"]
+            except TypeError:
+                raise tornado.web.HTTPError(404)
+            finally:
+                conn.close()
+
+            # begin
+            epub = EPUB(path, "r")
+
+            num = None
+            for n, i in enumerate(epub.info["guide"]):
+                if i["type"] == "text":
+                    num = n
+                    break
+
+            if num:
+                items = [x["href"] for x in epub.info["guide"][:(num+1)]]
+            else:
+                # if no type="text" is found, provide 20% of content
+                num = int(len(epub.info["spine"]) / 100.00 * 20.00)
+                items = [x["href"] for x in epub.info["guide"][:num]]
+
+            fakefile = StringIO()
+            output = EPUB(fakefile, "w",
+                          title=epub.info["metadata"]["title"],
+                          language=epub.info["metadata"]["language"])
+
+            src = []
+            for i in items:
+                from htmlentitydefs import entitydefs
+                parser = ET.XMLParser()
+                parser.parser.UseForeignDTD(True)
+                parser.entity.update(entitydefs)
+                filelike = StringIO(epub.read(os.path.join(epub.root_folder, i)))
+                root = ET.parse(filelike, parser)
+                map(src.append, [os.path.normpath(os.path.join(os.path.dirname(os.path.join(epub.root_folder, i)),
+                                                               x.attrib["src"]))
+                                 for x in root.findall(".//*[@src]")] +
+                                [os.path.normpath(os.path.join(os.path.dirname(os.path.join(epub.root_folder, i)),
+                                                               x.attrib["href"]))
+                                 for x in root.findall(".//{http://www.w3.org/1999/xhtml}link[@href]")])
+
+            src = list(set(src))  # remove multiple references
+
+            # add non-part manifest items
+            for i in src:
+                output.additem(epub.read(i), i.replace(epub.root_folder+"/", ""), mimetypes.guess_type(i)[0])
+
+            # add selected parts
+            for i in items:
+                output.addpart(epub.read(os.path.join(epub.root_folder, i)), i, "application/xhtml+xml")
+
+            # generate exlibris
+            exlibris = open(os.path.join(self.get_template_path(), "exlibris.xhtml"), "r").read().format(
+                host=self.request.headers.get("Host"),
+                user=user_real_ip(self.request),
+                date=datetime.date.today())
+
+            # add exlibris
+            part = StringIO(exlibris)
+            output.addpart(part, "exlibris.xhtml", "application/xhtml+xml", 1)
+            output.close()
+
+            # select file
+            output.filename.seek(0)
+
+            self.set_header('Content-Type', 'application/zip')
+
+            # if isolate script, use epub.writetodisk("preview_"+os.path.basename(path))
+            self.set_header('Content-Disposition', 'attachment; filename=''preview_'+os.path.basename(path)+'')
+            self.write(output.filename.read())
+        else:
+            raise tornado.web.HTTPError(404)
+
+
 class OPDSCatalogue(tornado.web.RequestHandler):
 
     @tornado.web.asynchronous
@@ -447,7 +530,6 @@ class OPDSCatalogue(tornado.web.RequestHandler):
 
     def perform(self, callback):
         catalogue = opds.generateCatalogRoot()
-        # Raw cache. TODO: better cache handling
         with open(os.path.join(os.path.dirname(__file__), os.path.pardir, "feed.xml"), "w") as f:
             f.write(catalogue)
         return callback(catalogue)

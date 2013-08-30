@@ -21,3 +21,16 @@ def httpbasic(method):
             kwargs['user'], kwargs['pass'] = username, password
             return method(self, *args, **kwargs)
     return wrapper
+
+
+def unauthorized(method):
+    """
+    Temporary decorator to disable access to endpoints
+    """
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        self.set_status(403)
+        self.write("Unavailable")
+        self.finish()
+        return None
+    return wrapper

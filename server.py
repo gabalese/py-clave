@@ -8,7 +8,7 @@ import tornado.ioloop
 
 from controllers.TestHandlers import PingHandler, CheckDB
 from controllers.MainHandlers import GetInfo, ListFiles, ShowFileToc, GetFilePart, GetFilePath, DownloadPublication, \
-    OPDSCatalogue, ShowManifest, GetResource, MainQuery, MainHandler, DownloadWithExLibris, GetCover
+    OPDSCatalogue, ShowManifest, GetResource, MainQuery, MainHandler, DownloadWithExLibris, GetCover, DownloadPreview
 
 import template.module.ui as UI
 
@@ -30,6 +30,7 @@ application = tornado.web.Application([
     #  Get whole book
     (r"/book/([^/]+)/download", DownloadPublication),
     (r"/book/([^/]+)/download/exlibris", DownloadWithExLibris),
+    (r"/book/([^/]+)/download/preview", DownloadPreview),
     (r"/book/([^/]+)/cover", GetCover),
     #  Show toc
     (r"/book/([^/]+)/toc", ShowFileToc),
@@ -71,7 +72,7 @@ def update_handler(sig, frame):
 
 if __name__ == "__main__":
 
-    application.listen(PORT)
+    application.listen(PORT, xheaders=True)
 
     signal.signal(signal.SIGINT, stop_handler)      # kill -s INT
     signal.signal(signal.SIGTERM, stop_handler)     # kill -s TERM
