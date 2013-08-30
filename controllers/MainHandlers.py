@@ -377,7 +377,6 @@ class GetResource(tornado.web.RequestHandler):
 
 class DownloadPublication(tornado.web.RequestHandler):
 
-    @authorization.httpbasic
     def get(self, filename):
         if filename:
             database, conn = opendb()
