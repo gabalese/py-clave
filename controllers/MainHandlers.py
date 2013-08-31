@@ -459,6 +459,9 @@ class DownloadPreview(tornado.web.RequestHandler):
                 items = [x["href"] for x in epub.info["guide"][:num]]
 
             fakefile = StringIO()
+            # TODO: set book creator
+            # update pyepub
+            # implement @property getter/setter
             output = EPUB(fakefile, "w",
                           title=epub.info["metadata"]["title"],
                           language=epub.info["metadata"]["language"])
