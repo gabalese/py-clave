@@ -10,6 +10,8 @@ from controllers.TestHandlers import PingHandler, CheckDB
 from controllers.MainHandlers import GetInfo, ListFiles, ShowFileToc, GetFilePart, GetFilePath, DownloadPublication, \
     OPDSCatalogue, ShowManifest, GetResource, MainQuery, MainHandler, DownloadWithExLibris, GetCover, DownloadPreview
 
+from controllers.ipnhandler import IpnHandler
+
 import template.module.ui as UI
 
 from data.utils import updateDB
@@ -43,7 +45,9 @@ application = tornado.web.Application([
     (r"/book/([^/]+)/chapter/([^/]+)", GetFilePart),
     (r"/book/([^/]+)/chapter/([^/]+)/fragment/([^/]+)", GetFilePart),
     #  Resolution fallback
-    (r"/getpath/([^/]+)/(.+)", GetFilePath)],
+    (r"/getpath/([^/]+)/(.+)", GetFilePath),
+    (r"/ipn", IpnHandler)  # Paypal IPN HOOK
+    ],
     debug=True,
     cookie_secret="ed54ef7408cd7eeeb5a819ddcc633550",  # TODO
     login_url="/login",  # TODO
