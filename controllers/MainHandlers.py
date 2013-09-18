@@ -443,7 +443,7 @@ class DownloadPreview(tornado.web.RequestHandler):
                 conn.close()
 
             # begin
-            epub = EPUB(path, "r")
+            epub = EPUB(path)
 
             num = None
             for n, i in enumerate(epub.info["guide"]):
@@ -455,16 +455,13 @@ class DownloadPreview(tornado.web.RequestHandler):
                 items = [x["href"] for x in epub.info["guide"][:(num+1)]]
             else:
                 # if no type="text" is found, provide 20% of content
-                num = int(len(epub.info["spine"]) / 100.00 * 20.00)
+                num = int((len(epub.info["spine"]) / 100.00) * 20.00)
                 items = [x["href"] for x in epub.info["guide"][:num]]
 
             fakefile = StringIO()
-            # TODO: set book creator
-            # update pyepub
-            # implement @property getter/setter
-            output = EPUB(fakefile, "w",
-                          title=epub.info["metadata"]["title"],
-                          language=epub.info["metadata"]["language"])
+
+            output = EPUB(fakefile, "w")
+            output.author, output.title, output.language = epub.author, epub.title, epub.language
 
             src = []
             for i in items:
@@ -499,7 +496,7 @@ class DownloadPreview(tornado.web.RequestHandler):
 
             # add exlibris
             part = StringIO(exlibris)
-            output.addpart(part, "exlibris.xhtml", "application/xhtml+xml", 1)
+            output.addpart(part, "exlibris.xhtml", "application/xhtml+xml", len(output.opf[2])-1)
             output.close()
 
             # select file
