@@ -12,7 +12,9 @@ class IpnHandler(tornado.web.RequestHandler):
             paypal = 'https://www.sandbox.paypal.com/cgi-bin/webscr'
             ipn_received = self.request.body
             ipn_verify = "cmd=_notify-validate&" + ipn_received
-            print ipn_verify
             req = urllib2.Request(paypal, ipn_verify)
             response = urllib2.urlopen(req)
-            print response.code, response.read()
+            if response.read() == "VERIFIED":
+                f.write(self.get_argument("txn_id", None))
+            else:
+                f.write("NOPE! LOL")
