@@ -1,10 +1,4 @@
-/*
-Thanks @sandersk
-See HTML5 for Publishers
-http://toc.oreilly.com/2011/11/html5-for-publishers-canvas.html
- */
-
-window.addEventListener('load', eventWindowLoaded, false);
+window.addEventListener('load', eventWindowLoaded, false);	
 function eventWindowLoaded() {
     canvasApp();
 }
@@ -20,8 +14,26 @@ function canvasApp(){
     }else{
 	var theCanvas = document.getElementById('canvas');
 	var context = theCanvas.getContext('2d');
+	var redButton = document.getElementById("Red");
+	var orangeButton = document.getElementById("Orange");
+	var yellowButton = document.getElementById("Yellow");
+	var greenButton = document.getElementById("Green");
+	var blueButton = document.getElementById("Blue");
+	var purpleButton = document.getElementById("Purple");
+	var brownButton = document.getElementById("Brown");
+	var blackButton = document.getElementById("Black");
+	var whiteButton = document.getElementById("White");
 	var colorChosen = document.getElementById("color_chosen");
 	var resetButton = document.getElementById("reset_image");
+        redButton.addEventListener('click', colorPressed, false);
+        orangeButton.addEventListener('click', colorPressed, false);
+        yellowButton.addEventListener('click', colorPressed, false);
+        greenButton.addEventListener('click', colorPressed, false);
+        blueButton.addEventListener('click', colorPressed, false);
+        purpleButton.addEventListener('click', colorPressed, false);
+        brownButton.addEventListener('click', colorPressed, false);
+        blackButton.addEventListener('click', colorPressed, false);
+        whiteButton.addEventListener('click', colorPressed, false);
         resetButton.addEventListener('click', resetPressed, false);
 	drawScreen();
     }
