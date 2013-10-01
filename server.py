@@ -8,7 +8,8 @@ import tornado.ioloop
 
 from controllers.TestHandlers import PingHandler, CheckDB
 from controllers.MainHandlers import GetInfo, ListFiles, ShowFileToc, GetFilePart, GetFilePath, DownloadPublication, \
-    OPDSCatalogue, ShowManifest, GetResource, MainQuery, MainHandler, DownloadWithExLibris, GetCover, DownloadPreview
+    OPDSCatalogue, ShowManifest, GetResource, MainQuery, MainHandler, DownloadWithExLibris, GetCover, \
+    DownloadPreview, DownloadWithSignature
 
 import template.module.ui as UI
 
@@ -34,6 +35,7 @@ application = tornado.web.Application([
     (r"/book/([^/]+)/cover", GetCover),
     #  Show toc
     (r"/book/([^/]+)/toc", ShowFileToc),
+    (r"/book/([^/]+)/sign", DownloadWithSignature),
     #  Query titles
     (r"/catalogue/search", MainQuery),
     #  Show manifest

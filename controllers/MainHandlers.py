@@ -61,7 +61,6 @@ class GeneralErrorHandler(tornado.web.RequestHandler):
 
 
 class MainHandler(tornado.web.RequestHandler):
-
     def get(self, *args, **kwargs):
         self.render("hello.html",
                     title="Welcome!",
@@ -70,7 +69,6 @@ class MainHandler(tornado.web.RequestHandler):
 
 
 class GetInfo(tornado.web.RequestHandler):
-
     @tornado.web.asynchronous
     @gen.engine
     def get(self, filename):
@@ -84,7 +82,7 @@ class GetInfo(tornado.web.RequestHandler):
                             contents=response["toc"],
                             manifest=response["manifest"],
                             cover=response["cover"]
-                            )
+                )
             else:
                 self.set_header("Content-Type", "application/json")
                 output = response
@@ -111,7 +109,6 @@ class GetInfo(tornado.web.RequestHandler):
 
 
 class ShowManifest(tornado.web.RequestHandler):
-
     @tornado.web.asynchronous
     @gen.engine
     def get(self, filename):
@@ -138,7 +135,6 @@ class ShowManifest(tornado.web.RequestHandler):
 
 
 class ListFiles(tornado.web.RequestHandler):
-
     @tornado.web.asynchronous
     @gen.engine
     def get(self):
@@ -158,7 +154,6 @@ class ListFiles(tornado.web.RequestHandler):
 
 
 class ShowFileToc(tornado.web.RequestHandler):
-
     @tornado.web.asynchronous
     @gen.engine
     def get(self, identifier):
@@ -231,6 +226,7 @@ class GetFilePart(tornado.web.RequestHandler):
             if section:
                 try:
                     from htmlentitydefs import entitydefs
+
                     parser = ET.XMLParser()
                     parser.parser.UseForeignDTD(True)
                     parser.entity.update(entitydefs)
@@ -376,7 +372,6 @@ class GetResource(tornado.web.RequestHandler):
 
 
 class DownloadPublication(tornado.web.RequestHandler):
-
     def get(self, filename):
         if filename:
             database, conn = opendb()
@@ -390,14 +385,13 @@ class DownloadPublication(tornado.web.RequestHandler):
                 conn.close()
             output = open(path, "r")
             self.set_header('Content-Type', 'application/zip')
-            self.set_header('Content-Disposition', 'attachment; filename='+os.path.basename(path)+'')
+            self.set_header('Content-Disposition', 'attachment; filename=' + os.path.basename(path) + '')
             self.write(output.read())
         else:
             raise tornado.web.HTTPError(404)
 
 
 class DownloadWithExLibris(tornado.web.RequestHandler):
-
     def get(self, filename):
         if filename:
             database, conn = opendb()
@@ -422,14 +416,52 @@ class DownloadWithExLibris(tornado.web.RequestHandler):
             output.filename.seek(0)
 
             self.set_header('Content-Type', 'application/zip')
-            self.set_header('Content-Disposition', 'attachment; filename='+os.path.basename(path)+'')
+            self.set_header('Content-Disposition', 'attachment; filename=' + os.path.basename(path) + '')
+            self.write(output.filename.read())
+        else:
+            raise tornado.web.HTTPError(404)
+
+
+class DownloadWithSignature(tornado.web.RequestHandler):
+    def get(self, filename):
+        self.render("signature.xhtml", url=self.request.uri)
+
+    def post(self, filename):
+        string = """<?xml version="1.0" encoding="utf-8"?>
+                <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+                    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+                <html xmlns="http://www.w3.org/1999/xhtml">
+                <head>
+                  <title>Firma</title>
+                </head>
+                <body>
+                    <img src="{}">
+                </body>
+                </html>""".format(self.get_argument("imageContent"))
+        if filename:
+            database, conn = opendb()
+            try:
+                path = database.execute(
+                    "SELECT path FROM books WHERE isbn = '{0}' ".format(filename)
+                ).fetchone()["path"]
+            except TypeError:
+                raise tornado.web.HTTPError(404)
+            finally:
+                conn.close()
+            output = EPUB(path, "a")
+            part = StringIO(string)
+            output.addpart(part, "firma.xhtml", "application/xhtml+xml", 1)
+            output.close()
+            output.filename.seek(0)
+
+            self.set_header('Content-Type', 'application/zip')
+            self.set_header('Content-Disposition', 'attachment; filename=' + os.path.basename(path) + '')
             self.write(output.filename.read())
         else:
             raise tornado.web.HTTPError(404)
 
 
 class DownloadPreview(tornado.web.RequestHandler):
-
     def get(self, filename):
         if filename:
             database, conn = opendb()
@@ -452,7 +484,7 @@ class DownloadPreview(tornado.web.RequestHandler):
                     break
 
             if num:
-                items = [x["href"] for x in epub.info["guide"][:(num+1)]]
+                items = [x["href"] for x in epub.info["guide"][:(num + 1)]]
             else:
                 # if no type="text" is found, provide 20% of content
                 num = int((len(epub.info["spine"]) / 100.00) * 20.00)
@@ -466,6 +498,7 @@ class DownloadPreview(tornado.web.RequestHandler):
             src = []
             for i in items:
                 from htmlentitydefs import entitydefs
+
                 parser = ET.XMLParser()
                 parser.parser.UseForeignDTD(True)
                 parser.entity.update(entitydefs)
@@ -482,7 +515,7 @@ class DownloadPreview(tornado.web.RequestHandler):
 
             # add non-part manifest items
             for i in src:
-                output.additem(epub.read(i), i.replace(epub.root_folder+"/", ""), mimetypes.guess_type(i)[0])
+                output.additem(epub.read(i), i.replace(epub.root_folder + "/", ""), mimetypes.guess_type(i)[0])
 
             # add selected parts
             for i in items:
@@ -496,7 +529,7 @@ class DownloadPreview(tornado.web.RequestHandler):
 
             # add exlibris
             part = StringIO(exlibris)
-            output.addpart(part, "exlibris.xhtml", "application/xhtml+xml", len(output.opf[2])-1)
+            output.addpart(part, "exlibris.xhtml", "application/xhtml+xml", len(output.opf[2]) - 1)
             output.close()
 
             # select file
@@ -505,14 +538,13 @@ class DownloadPreview(tornado.web.RequestHandler):
             self.set_header('Content-Type', 'application/zip')
 
             # if isolate script, use epub.writetodisk("preview_"+os.path.basename(path))
-            self.set_header('Content-Disposition', 'attachment; filename=''preview_'+os.path.basename(path)+'')
+            self.set_header('Content-Disposition', 'attachment; filename=''preview_' + os.path.basename(path) + '')
             self.write(output.filename.read())
         else:
             raise tornado.web.HTTPError(404)
 
 
 class OPDSCatalogue(tornado.web.RequestHandler):
-
     @tornado.web.asynchronous
     @gen.engine
     def get(self):
@@ -535,7 +567,6 @@ class OPDSCatalogue(tornado.web.RequestHandler):
 
 
 class MainQuery(tornado.web.RequestHandler):
-
     def get(self):
         query = parse_querystring(self.request.query)
         if not query:
@@ -544,7 +575,8 @@ class MainQuery(tornado.web.RequestHandler):
         result = connessione.query(query.keys()[0], query.values()[0][0])
         meta = []
         for entry in result:
-            meta.append({"id": entry["isbn"], "title": entry["title"], "filename": os.path.basename(entry["path"]), "author": entry["author"]})
+            meta.append({"id": entry["isbn"], "title": entry["title"], "filename": os.path.basename(entry["path"]),
+                         "author": entry["author"]})
         connessione.exit()
         if "text/html" in accepted_formats(self.request.headers.get("accept")):
             self.render("catalogue.html", output=meta, search=query.values()[0][0])
