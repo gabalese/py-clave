@@ -435,7 +435,9 @@ class DownloadWithSignature(tornado.web.RequestHandler):
                   <title>Firma</title>
                 </head>
                 <body>
-                    <img src="{}">
+                <div>
+                    <img src="{}" />
+                </div>
                 </body>
                 </html>""".format(self.get_argument("imageContent"))
         if filename:
