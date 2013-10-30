@@ -552,7 +552,7 @@ class OPDSCatalogue(tornado.web.RequestHandler):
     def get(self):
         if os.path.exists(os.path.join(os.path.dirname(__file__), os.path.pardir, "feed.xml")):
             self.set_header("Content-Type", "application/atom+xml")
-            with open("feed.xml", "r") as f:
+            with open(os.path.join(os.path.dirname(__file__), os.path.pardir, "feed.xml"), "r") as f:
                 self.write(f.read())
                 self.finish()
         else:
