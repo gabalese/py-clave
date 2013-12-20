@@ -82,7 +82,7 @@ class GetInfo(tornado.web.RequestHandler):
                             contents=response["toc"],
                             manifest=response["manifest"],
                             cover=response["cover"]
-                )
+                            )
             else:
                 self.set_header("Content-Type", "application/json")
                 output = response
